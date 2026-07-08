@@ -1,0 +1,5 @@
+{
+  "publicHealthUrl": "https://cfuwwwhuftelsjwketjc.supabase.co/functions/v1/public-api?action=health",
+  "productsUrl": "https://cfuwwwhuftelsjwketjc.supabase.co/functions/v1/public-api?action=products",
+  "deviceConfigUrl": "https://cfuwwwhuftelsjwketjc.supabase.co/functions/v1/public-api?action=device-config&deviceId=tablet-01"
+}
