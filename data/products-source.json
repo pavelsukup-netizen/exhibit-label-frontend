@@ -199,9 +199,9 @@
   },
   {
     "excelRow": 24,
-    "id": null,
+    "id": "744400",
     "brand": "Gorenje",
-    "model": "BM341G3TDBGH",
+    "model": "BM341M3DBGH",
     "category": "mikrovlnka",
     "sourceUrl": "https://cz.gorenje.com/spotrebice/vareni-a-peceni/mikrovlnne-trouby/OVEN-TM934E3GP-S00E00-BM341M3DBGH-GOR/p/000000000000744400",
     "sourceType": "brand"
@@ -410,8 +410,8 @@
     "brand": "Mora",
     "model": "IS 8688 DX",
     "category": "sporák",
-    "sourceUrl": "https://www.mora.cz/indukcni-sporak-i-8688-bw-740927/",
-    "sourceType": "brand"
+    "sourceUrl": "https://www.planeo.cz/mora-is-8688-dx",
+    "sourceType": "retailer"
   },
   {
     "excelRow": 48,
