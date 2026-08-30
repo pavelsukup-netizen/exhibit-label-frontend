@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="cs">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#0c1117">
+  <title>Výstavní katalog</title>
+  <link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+  <div id="app" class="app" data-brand="Hisense">
+    <header class="topbar">
+      <button id="catalogButton" class="icon-button menu-button" type="button" aria-label="Vybrat produkt" aria-controls="catalogOverlay" aria-expanded="false"><span></span><span></span><span></span></button>
+      <button id="brandButton" class="brand-lock" type="button" aria-label="Logo značky, dlouhým stiskem otevřete správu"><span id="brandName">HISENSE</span></button>
+      <div class="header-product"><span id="headerCategory"></span><strong id="headerModel"></strong></div>
+      <div id="headerPrice" class="header-price"></div>
+      <button id="secretAdminButton" class="secret-admin" type="button" aria-label=""></button>
+    </header>
+
+    <main class="product-view">
+      <section class="gallery" aria-label="Fotografie produktu">
+        <div class="image-stage">
+          <div id="imageSkeleton" class="image-skeleton"></div>
+          <img id="heroImage" alt="" draggable="false">
+          <button id="previousImage" class="gallery-arrow previous" type="button" aria-label="Předchozí obrázek">‹</button>
+          <button id="nextImage" class="gallery-arrow next" type="button" aria-label="Další obrázek">›</button>
+          <div id="imageCounter" class="image-counter"></div>
+        </div>
+        <div id="thumbnails" class="thumbnails" aria-label="Náhledy fotografií"></div>
+      </section>
+      <section class="product-copy">
+        <div class="product-heading">
+          <p id="productEyebrow" class="eyebrow"></p>
+          <h1 id="productTitle"></h1>
+          <p id="productDescription" class="description"></p>
+        </div>
+        <nav id="detailTabs" class="tabs" aria-label="Informace o produktu"></nav>
+        <div id="detailPanel" class="detail-panel"></div>
+      </section>
+    </main>
+
+    <div id="catalogOverlay" class="overlay" hidden>
+      <section class="catalog-shell" role="dialog" aria-modal="true" aria-labelledby="catalogTitle">
+        <div class="catalog-header">
+          <div><p class="eyebrow">Výstavní katalog</p><h2 id="catalogTitle">Vyberte produkt</h2></div>
+          <button id="closeCatalog" class="icon-button close-button" type="button" aria-label="Zavřít výběr">×</button>
+        </div>
+        <div class="catalog-controls">
+          <label class="search-field"><span aria-hidden="true">⌕</span><input id="catalogSearch" type="search" placeholder="Hledat model nebo typ produktu" autocomplete="off"></label>
+          <div id="categoryFilters" class="filter-row" aria-label="Kategorie"></div>
+        </div>
+        <div id="catalogGrid" class="catalog-grid"></div>
+        <p id="catalogEmpty" class="empty-state" hidden>Tomuto výběru neodpovídá žádný produkt.</p>
+      </section>
+    </div>
+
+    <div id="pinOverlay" class="overlay dialog-overlay" hidden>
+      <form id="pinForm" class="dialog-card">
+        <p class="eyebrow">Správa tabletu</p><h2>Zadejte PIN</h2>
+        <input id="pinInput" class="large-input" type="password" inputmode="numeric" maxlength="8" autocomplete="off" aria-label="PIN">
+        <p id="pinError" class="form-error" aria-live="polite"></p>
+        <div class="dialog-actions"><button class="button secondary" data-close="pinOverlay" type="button">Zrušit</button><button class="button primary" type="submit">Pokračovat</button></div>
+      </form>
+    </div>
+
+    <div id="adminOverlay" class="overlay dialog-overlay" hidden>
+      <section class="admin-card" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
+        <div class="admin-header">
+          <div><p class="eyebrow">Lokální nastavení</p><h2 id="adminTitle">Nastavení tabletu</h2></div>
+          <button id="closeAdmin" class="icon-button close-button" type="button" aria-label="Zavřít správu">×</button>
+        </div>
+        <div class="admin-body">
+          <label class="field">Značka tabletu<select id="adminBrand"></select></label>
+          <div class="admin-section">
+            <div class="section-heading"><strong>Zobrazené produkty</strong><button id="toggleAllProducts" class="text-button" type="button">Změnit výběr</button></div>
+            <div id="adminProducts" class="admin-products"></div>
+          </div>
+          <label class="field">Výchozí produkt<select id="adminDefaultProduct"></select></label>
+          <div class="admin-section">
+            <strong>Video pro právě zobrazený produkt</strong>
+            <p class="help">Zadejte relativní cestu, například <code>media/745997.mp4</code>. Prázdné pole znamená, že záložka Video nebude návštěvníkům zobrazena.</p>
+            <input id="adminVideo" class="large-input" type="text" placeholder="media/PN.mp4" autocomplete="off">
+          </div>
+          <div class="status-grid">
+            <div><span>Provoz výstavy</span><strong>7:30–18:00</strong></div>
+            <div><span>Udržení obrazovky</span><strong id="wakeLockStatus">Kontroluji…</strong></div>
+            <div><span>Datový režim</span><strong>Lokální, bez Supabase</strong></div>
+          </div>
+        </div>
+        <div class="admin-footer"><button id="fullscreenButton" class="button secondary" type="button">Celá obrazovka</button><button id="saveAdmin" class="button primary" type="button">Uložit nastavení</button></div>
+      </section>
+    </div>
+
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </div>
+  <script src="data/products.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>
+
