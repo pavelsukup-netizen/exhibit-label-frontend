@@ -1,0 +1,24 @@
+.app[data-brand="Gorenje"] .brand-lock img {
+  height: 38px;
+  padding: 6px 8px;
+  border-radius: 5px;
+  background: #fff;
+  filter: none;
+}
+
+.product-copy.is-specs {
+  padding-top: 0;
+}
+
+.product-copy.is-specs .product-heading {
+  padding-top: 46px;
+}
+
+@media (max-width: 1350px) {
+  .product-copy.is-specs .product-heading { padding-top: 34px; }
+}
+
+@media (orientation: portrait) {
+  .product-copy.is-specs .product-heading { padding-top: 26px; }
+}
+
