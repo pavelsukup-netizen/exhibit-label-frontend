@@ -1,58 +1,53 @@
-# Exhibit Label Frontend v0.11
+# Exhibit Label Frontend 0.12 preview
 
-Statický frontend pro GitHub Pages.
+Statická tabletová aplikace pro výstavní popisky produktů Hisense, Gorenje a MORA. Tato verze už nepoužívá Supabase: konfigurace tabletu se ukládá pouze v daném zařízení a katalog lze otevřít z GitHub Pages i z lokální složky.
 
-## Co je uvnitř
+## Co obsahuje
 
-- `index.html` – celá tabletová aplikace v jednom souboru
-- výchozí Supabase public-api:
-  `https://cfuwwwhuftelsjwketjc.supabase.co/functions/v1/public-api`
-- výchozí Device ID:
-  `tablet-01`
+- 51 aktivních produktů načtených ze seznamu pro výstavu; stabilní ID každého produktu je jeho PN.
+- celoobrazovkový výběr produktů z hamburger menu;
+- velké dotykové prvky a responzivní rozvržení pro 11″ tablet 1920 × 1200;
+- lokální nastavení značky, povolených produktů a výchozího produktu;
+- volitelnou cestu k videu; bez přiřazeného videa se záložka Video vůbec nevytvoří;
+- Screen Wake Lock jako doplněk kiosk režimu;
+- plné běžné ceny bez akčních/cashback cen.
 
-## Nasazení na GitHub Pages
+## Spuštění
 
-1. Vytvoř na GitHubu nový repozitář, třeba:
-   `exhibit-label-frontend`
+Aplikace nemá sestavení ani serverové závislosti. Otevřete `index.html`, případně kořen repozitáře publikujte přes GitHub Pages.
 
-2. Nahraj do rootu repozitáře soubor:
-   `index.html`
+Pro lokální test přes HTTP:
 
-3. V GitHubu otevři:
-   `Settings -> Pages`
+```powershell
+python -m http.server 4173
+```
 
-4. Nastav:
-   - Source: `Deploy from a branch`
-   - Branch: `main`
-   - Folder: `/root`
+Potom otevřete `http://localhost:4173/`.
 
-5. Ulož.
+## Nastavení tabletu
 
-6. Počkej minutu/dvě. GitHub ti ukáže URL ve stylu:
-   `https://TVUJ-USERNAME.github.io/exhibit-label-frontend/`
+Správu otevřete dlouhým stiskem názvu značky nebo pěti rychlými dotyky v pravém horním rohu. Výchozí PIN je `2468`.
 
-## Nastavení v tabletu
+Nastavení se ukládá do `localStorage` pod klíčem `exhibit-label-device-v2`. Každý tablet proto může mít jinou značku a jiný výběr produktů, přestože všechny používají stejnou aplikaci.
 
-Otevři aplikaci na GitHub Pages.
+Video se zadává jako relativní cesta, například `media/745997.mp4`. Doporučený cílový formát pro tablet je MP4, video H.264 (AVC), zvuk AAC, rozlišení nejvýše 1920 × 1080.
 
-Admin menu:
-- 5× tap do pravého horního rohu
-- nebo dlouhý stisk loga
-- PIN: `2468`
+## Datové soubory
 
-V adminu nastav:
-- Device ID v Supabase: například `tablet-01`
-- Supabase public-api URL:
-  `https://cfuwwwhuftelsjwketjc.supabase.co/functions/v1/public-api`
-- zapnout `Načítat produkty ze Supabase podle Device ID`
-- kliknout `Načíst ze Supabase`
+- `data/products.js` — výsledný katalog použitelný i z `file://` bez síťového načítání JSON;
+- `data/products-source.json` — zdrojové řádky a URL z Excelu;
+- `data/import-report.json` — kontrolní výstup importu;
+- `scripts/validate-catalog.mjs` — kontrola počtu produktů, PN, cen a obrázků.
 
-## Fully Kiosk / Android
+## Známé kontroly před ostrým nasazením
 
-Ve Fully Kiosk Browseru nastav jako Start URL GitHub Pages URL.
-Aplikace si uloží Device ID lokálně do daného tabletu.
+- Excel obsahuje 52 řádků produktů, nikoli 62.
+- Gorenje `BM341G3TDBGH` nemá v Excelu PN. Proto není zařazen mezi 51 aktivních produktů; odkaz míří na jiný model `BM341M3DBGH` s PN 744400.
+- Excel uvádí `WG814A55 TotalFresh`, zdrojová stránka uvádí `WG814A5P5` při PN 747646.
+- Excel uvádí `IS 8688 DX`, zdrojová stránka uvádí `I 8688 BW` při PN 740927.
+- Obrázky jsou nyní vybírány z originálních/HI-RES zdrojů. Pro finální offline balíček se stáhnou do lokální složky a odkazy se přepíší na relativní cesty.
 
-## Důležité
+## Provoz 7:30–18:00
 
-Každý tablet má stejnou URL, ale jiné lokální Device ID.
-Supabase potom vrací produkty podle tabulky `devices` a přiřazeného `display_profile`.
+Webová aplikace žádá systém o udržení obrazovky zapnuté, ale spolehlivý časový plán, automatický start po restartu a uzamčení tabletu musí zajistit kiosk aplikace nebo Samsung Knox. Tato část bude dokončena až po odsouhlasení vzhledu a chování preview.
+
