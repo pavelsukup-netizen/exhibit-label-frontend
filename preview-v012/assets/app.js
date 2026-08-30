@@ -6,6 +6,11 @@
   const STORAGE_KEY = 'exhibit-label-device-v2';
   const ADMIN_PIN = '2468';
   const brands = ['Hisense', 'Gorenje', 'Mora'];
+  const brandPresentation = {
+    Hisense: { color: '#009b9b', logo: 'https://hisense-static.hgecdn.net/img/w_full/medias/Hisense-logo-green.png?context=bWFzdGVyfGltYWdlc3wyMTM5fGltYWdlL3BuZ3xhRFpsTDJnMU9DOHhOVEV6T1RFM05UZzFPREl3Tmk5SWFYTmxibk5sTFd4dloyOHRaM0psWlc0dWNHNW58MjllY2M3OWI3ZDdlYTcyNTNjNzVjZDk4YTlmMTc2OWNiNGNlZmFkMzZlMWQxNWQ0YTY5NGJjY2M3ZTJkNjk3NQ' },
+    Gorenje: { color: '#62666a', logo: 'https://gorenje-static.hgecdn.net/img/w_full/medias/gorenje-logo-narrow-CZ.webp?context=bWFzdGVyfGltYWdlc3w0MjU5MnxpbWFnZS93ZWJwfGFEYzFMMmhrTkM4eE5UTXhORFEzTnpNeE9ERTNOQzluYjNKbGJtcGxMV3h2WjI4dGJtRnljbTkzTFVOYUxuZGxZbkF8ODU3MmNhZjljZjI3YjczOTdhYThkZGQyYzYxYTYyNDY4MzMzZDIxNDA3MDg5ZTZiMzRiOTU1M2E0OTFkNTIwNQ' },
+    Mora: { color: '#b0192e', logo: 'https://www.mora.cz/front/style/img/novy_vzhled/mora-logo.svg' },
+  };
   const products = catalog.products;
   const byId = new Map(products.map((product) => [product.id, product]));
   const defaultConfig = { brand: 'Hisense', productIds: [], defaultProductId: '', videoOverrides: {} };
@@ -21,7 +26,7 @@
   let pressTimer = null;
 
   const $ = (id) => document.getElementById(id);
-  const ids = ['app','brandName','headerCategory','headerModel','headerPrice','productEyebrow','productTitle','productDescription','heroImage','imageSkeleton','previousImage','nextImage','imageCounter','thumbnails','detailTabs','detailPanel','catalogButton','catalogOverlay','closeCatalog','catalogSearch','categoryFilters','catalogGrid','catalogEmpty','secretAdminButton','brandButton','pinOverlay','pinForm','pinInput','pinError','adminOverlay','closeAdmin','adminBrand','adminProducts','adminDefaultProduct','adminVideo','toggleAllProducts','wakeLockStatus','fullscreenButton','saveAdmin','toast'];
+  const ids = ['app','gallery','productCopy','brandLogo','headerCategory','headerModel','headerPrice','productEyebrow','productTitle','productDescription','heroImage','imageSkeleton','previousImage','nextImage','imageCounter','thumbnails','detailTabs','detailPanel','catalogButton','catalogOverlay','closeCatalog','catalogSearch','categoryFilters','catalogGrid','catalogEmpty','secretAdminButton','brandButton','pinOverlay','pinForm','pinInput','pinError','adminOverlay','closeAdmin','adminBrand','adminProducts','adminDefaultProduct','adminVideo','toggleAllProducts','wakeLockStatus','fullscreenButton','saveAdmin','toast'];
   const els = Object.fromEntries(ids.map((id) => [id, $(id)]));
   const unique = (items) => [...new Set(items)];
   const formatPrice = (price) => price ? `${new Intl.NumberFormat('cs-CZ').format(price)} Kč` : 'Cena bude doplněna';
@@ -53,11 +58,14 @@
 
   function renderProduct() {
     const product = currentProduct;
+    const presentation = brandPresentation[product.brand];
     els.app.dataset.brand = product.brand;
-    els.brandName.textContent = product.brand.toUpperCase();
+    els.brandLogo.src = presentation.logo;
+    els.brandLogo.alt = product.brand;
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', presentation.color);
     els.headerCategory.textContent = product.name;
     els.headerModel.textContent = product.model;
-    els.headerPrice.textContent = formatPrice(product.price);
+    els.headerPrice.innerHTML = `<span>DMOC s DPH:</span><strong>${escapeHtml(formatPrice(product.price))}</strong>`;
     els.productEyebrow.textContent = `${product.brand} · PN ${product.id}`;
     els.productTitle.textContent = product.model;
     els.productDescription.textContent = product.description;
@@ -68,6 +76,7 @@
 
   function renderGallery() {
     const images = currentProduct.images || [];
+    if (currentImage >= images.length) currentImage = 0;
     const image = images[currentImage];
     els.imageSkeleton.hidden = false;
     els.heroImage.classList.remove('loaded');
@@ -75,6 +84,7 @@
     if (image?.url) els.heroImage.src = image.url;
     else { els.heroImage.removeAttribute('src'); els.heroImage.alt = 'Fotografie bude doplněna'; els.imageSkeleton.hidden = true; }
     const multiple = images.length > 1;
+    els.gallery.classList.toggle('single-image', !multiple);
     els.previousImage.hidden = !multiple;
     els.nextImage.hidden = !multiple;
     els.imageCounter.textContent = images.length ? `${currentImage + 1} / ${images.length}` : 'Bez fotografie';
@@ -85,10 +95,11 @@
     const tabs = [{ id: 'overview', label: 'Přehled' }, { id: 'specs', label: 'Parametry' }];
     if (productVideo(currentProduct)) tabs.push({ id: 'video', label: 'Video' });
     if (!tabs.some((tab) => tab.id === currentTab)) currentTab = 'overview';
+    els.productCopy.classList.toggle('is-specs', currentTab === 'specs');
     els.detailTabs.innerHTML = tabs.map((tab) => `<button class="tab-button${tab.id === currentTab ? ' active' : ''}" data-tab="${tab.id}" type="button">${tab.label}</button>`).join('');
     if (currentTab === 'overview') {
-      const items = currentProduct.highlights?.length ? currentProduct.highlights : [currentProduct.description];
-      els.detailPanel.innerHTML = `<ul class="highlight-list">${items.map((item) => `<li>${escapeHtml(item)}</li>`).join('')}</ul>`;
+      const features = currentProduct.features?.length ? currentProduct.features : [{ title: 'Hlavní vlastnosti', description: currentProduct.description }];
+      els.detailPanel.innerHTML = `<div class="feature-list">${features.map((feature) => `<article class="feature-card"><h3>${escapeHtml(feature.title)}</h3>${feature.subtitle && feature.subtitle !== feature.description ? `<strong>${escapeHtml(feature.subtitle)}</strong>` : ''}${feature.description ? `<p>${escapeHtml(feature.description)}</p>` : ''}</article>`).join('')}</div>`;
     } else if (currentTab === 'specs') {
       const specs = currentProduct.specifications || [];
       els.detailPanel.innerHTML = specs.length ? `<dl class="spec-list">${specs.map((spec) => `<div class="spec-row"><dt>${escapeHtml(spec.label)}</dt><dd>${escapeHtml(spec.value)}</dd></div>`).join('')}</dl>` : '<p class="empty-state">Technické parametry budou doplněny po kontrole zdroje.</p>';
@@ -161,7 +172,7 @@
   els.previousImage.addEventListener('click', () => changeImage(-1));
   els.nextImage.addEventListener('click', () => changeImage(1));
   els.thumbnails.addEventListener('click', (event) => { const button = event.target.closest('[data-image]'); if (button) { currentImage = Number(button.dataset.image); renderGallery(); } });
-  els.detailTabs.addEventListener('click', (event) => { const button = event.target.closest('[data-tab]'); if (button) { currentTab = button.dataset.tab; renderTabs(); } });
+  els.detailTabs.addEventListener('click', (event) => { const button = event.target.closest('[data-tab]'); if (button) { currentTab = button.dataset.tab; els.productCopy.scrollTop = 0; els.detailPanel.scrollTop = 0; renderTabs(); } });
   els.catalogButton.addEventListener('click', () => setOverlay(els.catalogOverlay, true));
   els.closeCatalog.addEventListener('click', () => setOverlay(els.catalogOverlay, false));
   els.catalogSearch.addEventListener('input', renderCatalog);
