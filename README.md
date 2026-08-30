@@ -4,9 +4,12 @@ Statická tabletová aplikace pro výstavní popisky produktů Hisense, Gorenje 
 
 ## Co obsahuje
 
-- 51 aktivních produktů načtených ze seznamu pro výstavu; stabilní ID každého produktu je jeho PN.
+- 52 aktivních produktů načtených ze seznamu pro výstavu; stabilní ID každého produktu je jeho PN.
 - celoobrazovkový výběr produktů z hamburger menu;
 - velké dotykové prvky a responzivní rozvržení pro 11″ tablet 1920 × 1200;
+- barevně odlišené zóny značek s originálními logy a cenou označenou `DMOC s DPH`;
+- úplné technické parametry a rozšířené popisy klíčových funkcí;
+- galerii omezenou na kvalitní produktové fotografie bez nízkých náhledů a 360° mezisnímků;
 - lokální nastavení značky, povolených produktů a výchozího produktu;
 - volitelnou cestu k videu; bez přiřazeného videa se záložka Video vůbec nevytvoří;
 - Screen Wake Lock jako doplněk kiosk režimu;
@@ -34,7 +37,8 @@ Video se zadává jako relativní cesta, například `media/745997.mp4`. Doporu�
 
 ## Datové soubory
 
-- `data/products.js` — výsledný katalog použitelný i z `file://` bez síťového načítání JSON;
+- `data/products-*.js` — katalog rozdělený podle značek, aby se dal spolehlivě publikovat a načíst i z `file://`;
+- `data/products.js` — malé sloučení tří částí do výsledného katalogu;
 - `data/products-source.json` — zdrojové řádky a URL z Excelu;
 - `data/import-report.json` — kontrolní výstup importu;
 - `scripts/validate-catalog.mjs` — kontrola počtu produktů, PN, cen a obrázků.
@@ -42,9 +46,9 @@ Video se zadává jako relativní cesta, například `media/745997.mp4`. Doporu�
 ## Známé kontroly před ostrým nasazením
 
 - Excel obsahuje 52 řádků produktů, nikoli 62.
-- Gorenje `BM341G3TDBGH` nemá v Excelu PN. Proto není zařazen mezi 51 aktivních produktů; odkaz míří na jiný model `BM341M3DBGH` s PN 744400.
-- Excel uvádí `WG814A55 TotalFresh`, zdrojová stránka uvádí `WG814A5P5` při PN 747646.
-- Excel uvádí `IS 8688 DX`, zdrojová stránka uvádí `I 8688 BW` při PN 740927.
+- Gorenje používá potvrzený model `BM341M3DBGH` s PN `744400`.
+- U pračky se zobrazuje potvrzený výstavní název `WG814A55 TotalFresh` při PN `747646`.
+- MORA `IS 8688 DX` používá potvrzený podklad Planeo a PN `740927`.
 - Obrázky jsou nyní vybírány z originálních/HI-RES zdrojů. Pro finální offline balíček se stáhnou do lokální složky a odkazy se přepíší na relativní cesty.
 
 ## Provoz 7:30–18:00
