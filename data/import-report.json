@@ -1,27 +1,8 @@
 {
-  "generatedAt": "2026-08-30T12:30:03.997Z",
+  "generatedAt": "2026-08-30T16:40:18.429Z",
   "sourceRows": 52,
-  "included": 51,
-  "excluded": [
-    {
-      "excelRow": 24,
-      "model": "BM341G3TDBGH",
-      "reason": "Chybí PN v Excelu; stabilní ID nelze vytvořit."
-    }
-  ],
-  "warnings": [
-    {
-      "id": "747646",
-      "model": "WG814A55 TotalFresh",
-      "sourceModel": "WG814A5P5",
-      "type": "model-mismatch"
-    },
-    {
-      "id": "740927",
-      "model": "IS 8688 DX",
-      "sourceModel": "I 8688 BW",
-      "type": "model-mismatch"
-    }
-  ]
+  "included": 52,
+  "excluded": [],
+  "warnings": []
 }
 
