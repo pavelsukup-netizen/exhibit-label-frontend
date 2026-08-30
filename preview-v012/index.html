@@ -6,19 +6,20 @@
   <meta name="theme-color" content="#0c1117">
   <title>Výstavní katalog</title>
   <link rel="stylesheet" href="assets/app.css">
+  <link rel="stylesheet" href="assets/overrides.css">
 </head>
 <body>
   <div id="app" class="app" data-brand="Hisense">
     <header class="topbar">
       <button id="catalogButton" class="icon-button menu-button" type="button" aria-label="Vybrat produkt" aria-controls="catalogOverlay" aria-expanded="false"><span></span><span></span><span></span></button>
-      <button id="brandButton" class="brand-lock" type="button" aria-label="Logo značky, dlouhým stiskem otevřete správu"><span id="brandName">HISENSE</span></button>
+      <button id="brandButton" class="brand-lock" type="button" aria-label="Logo značky, dlouhým stiskem otevřete správu"><img id="brandLogo" alt="Hisense"></button>
       <div class="header-product"><span id="headerCategory"></span><strong id="headerModel"></strong></div>
       <div id="headerPrice" class="header-price"></div>
       <button id="secretAdminButton" class="secret-admin" type="button" aria-label=""></button>
     </header>
 
     <main class="product-view">
-      <section class="gallery" aria-label="Fotografie produktu">
+      <section id="gallery" class="gallery" aria-label="Fotografie produktu">
         <div class="image-stage">
           <div id="imageSkeleton" class="image-skeleton"></div>
           <img id="heroImage" alt="" draggable="false">
@@ -28,7 +29,7 @@
         </div>
         <div id="thumbnails" class="thumbnails" aria-label="Náhledy fotografií"></div>
       </section>
-      <section class="product-copy">
+      <section id="productCopy" class="product-copy">
         <div class="product-heading">
           <p id="productEyebrow" class="eyebrow"></p>
           <h1 id="productTitle"></h1>
@@ -93,6 +94,9 @@
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
   </div>
+  <script src="data/products-hisense.js"></script>
+  <script src="data/products-gorenje.js"></script>
+  <script src="data/products-mora.js"></script>
   <script src="data/products.js"></script>
   <script src="assets/app.js"></script>
 </body>
