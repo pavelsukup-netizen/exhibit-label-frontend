@@ -4,6 +4,8 @@
   if (!catalog?.products?.length) throw new Error('Katalog produktů není dostupný.');
 
   const STORAGE_KEY = 'exhibit-label-device-v2';
+  const IMAGE_DB_NAME = 'exhibit-label-media-v1';
+  const IMAGE_STORE_NAME = 'product-images';
   const ADMIN_PIN = '2468';
   const brands = ['Hisense', 'Gorenje', 'Mora'];
   const brandPresentation = {
@@ -13,7 +15,7 @@
   };
   const products = catalog.products;
   const byId = new Map(products.map((product) => [product.id, product]));
-  const defaultConfig = { brand: 'Hisense', productIds: [], defaultProductId: '', videoOverrides: {} };
+  const defaultConfig = { brand: 'Hisense', productIds: [], defaultProductId: '', videoOverrides: {}, imageSettings: {} };
   const loadConfig = () => { try { return { ...defaultConfig, ...JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') }; } catch { return { ...defaultConfig }; } };
   let config = loadConfig();
   let currentProduct = null;
@@ -23,15 +25,39 @@
   let wakeLock = null;
   let adminTapCount = 0;
   let adminTapTimer = null;
-  let pressTimer = null;
+  let imageDb = null;
+  const uploadedImages = new Map();
+  const uploadedObjectUrls = new Map();
 
   const $ = (id) => document.getElementById(id);
-  const ids = ['app','gallery','productCopy','brandLogo','headerCategory','headerModel','headerPrice','productEyebrow','productTitle','productDescription','heroImage','imageSkeleton','previousImage','nextImage','imageCounter','thumbnails','detailTabs','detailPanel','catalogButton','catalogOverlay','closeCatalog','catalogSearch','categoryFilters','catalogGrid','catalogEmpty','secretAdminButton','brandButton','pinOverlay','pinForm','pinInput','pinError','adminOverlay','closeAdmin','adminBrand','adminProducts','adminDefaultProduct','adminVideo','toggleAllProducts','wakeLockStatus','fullscreenButton','saveAdmin','toast'];
+  const ids = ['app','gallery','productCopy','brandLogo','headerCategory','headerModel','headerPrice','productEyebrow','productTitle','productDescription','heroImage','imageSkeleton','previousImage','nextImage','imageCounter','thumbnails','detailTabs','detailPanel','catalogButton','catalogOverlay','closeCatalog','categoryFilters','catalogGrid','catalogEmpty','secretAdminButton','brandButton','pinOverlay','pinForm','pinInput','pinError','adminOverlay','closeAdmin','adminBrand','adminProducts','adminDefaultProduct','adminVideo','toggleAllProducts','wakeLockStatus','fullscreenButton','saveAdmin','toast'];
   const els = Object.fromEntries(ids.map((id) => [id, $(id)]));
   const unique = (items) => [...new Set(items)];
   const formatPrice = (price) => price ? `${new Intl.NumberFormat('cs-CZ').format(price)} Kč` : 'Cena bude doplněna';
   const productVideo = (product) => (config.videoOverrides?.[product.id] || product.video || '').trim();
   const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
+  const persistConfig = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+
+  function imageSettings(productId) {
+    config.imageSettings ||= {};
+    config.imageSettings[productId] ||= { hidden: [], linked: [] };
+    config.imageSettings[productId].hidden ||= [];
+    config.imageSettings[productId].linked ||= [];
+    return config.imageSettings[productId];
+  }
+
+  function allProductImages(product) {
+    const settings = imageSettings(product.id);
+    const source = (product.images || []).map((image, index) => ({ ...image, key: `source:${image.url}`, label: `Zdrojový obrázek ${index + 1}`, removable: false }));
+    const linked = settings.linked.map((image, index) => ({ ...image, key: `linked:${image.id}`, label: image.label || `Lokální cesta ${index + 1}`, removable: true, kind: 'linked' }));
+    const uploaded = (uploadedImages.get(product.id) || []).map((image) => ({ ...image, key: `uploaded:${image.id}`, label: image.name || 'Obrázek ze zařízení', removable: true, kind: 'uploaded' }));
+    return [...source, ...linked, ...uploaded];
+  }
+
+  function productImages(product) {
+    const hidden = new Set(imageSettings(product.id).hidden);
+    return allProductImages(product).filter((image) => !hidden.has(image.key));
+  }
 
   function normalizeConfig() {
     if (!brands.includes(config.brand)) config.brand = 'Hisense';
@@ -41,10 +67,78 @@
     if (!config.productIds.length) config.productIds = [...valid];
     if (!config.productIds.includes(config.defaultProductId)) config.defaultProductId = config.productIds[0];
     config.videoOverrides ||= {};
+    config.imageSettings ||= {};
   }
   normalizeConfig();
   const visibleProducts = () => config.productIds.map((id) => byId.get(id)).filter(Boolean);
   function showToast(message) { els.toast.textContent = message; els.toast.classList.add('show'); clearTimeout(showToast.timer); showToast.timer = setTimeout(() => els.toast.classList.remove('show'), 2200); }
+
+  function openImageDatabase() {
+    if (!('indexedDB' in window)) return Promise.resolve(null);
+    if (imageDb) return Promise.resolve(imageDb);
+    return new Promise((resolve) => {
+      const request = indexedDB.open(IMAGE_DB_NAME, 1);
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains(IMAGE_STORE_NAME)) {
+          const store = db.createObjectStore(IMAGE_STORE_NAME, { keyPath: 'id' });
+          store.createIndex('productId', 'productId', { unique: false });
+        }
+      };
+      request.onsuccess = () => { imageDb = request.result; resolve(imageDb); };
+      request.onerror = () => resolve(null);
+    });
+  }
+
+  function registerUploadedImage(record) {
+    const oldUrl = uploadedObjectUrls.get(record.id);
+    if (oldUrl) URL.revokeObjectURL(oldUrl);
+    const url = URL.createObjectURL(record.blob);
+    uploadedObjectUrls.set(record.id, url);
+    const list = (uploadedImages.get(record.productId) || []).filter((item) => item.id !== record.id);
+    list.push({ id: record.id, productId: record.productId, name: record.name, url });
+    uploadedImages.set(record.productId, list);
+  }
+
+  async function loadUploadedImages() {
+    const db = await openImageDatabase();
+    if (!db) return;
+    await new Promise((resolve) => {
+      const request = db.transaction(IMAGE_STORE_NAME, 'readonly').objectStore(IMAGE_STORE_NAME).getAll();
+      request.onsuccess = () => { request.result.forEach(registerUploadedImage); resolve(); };
+      request.onerror = () => resolve();
+    });
+  }
+
+  async function storeUploadedImages(productId, files) {
+    const db = await openImageDatabase();
+    if (!db) return showToast('Prohlížeč nepodporuje lokální uložení obrázků.');
+    const validFiles = [...files].filter((file) => file.type.startsWith('image/'));
+    for (const file of validFiles) {
+      const id = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+      const record = { id, productId, name: file.name, blob: file, createdAt: Date.now() };
+      await new Promise((resolve, reject) => {
+        const request = db.transaction(IMAGE_STORE_NAME, 'readwrite').objectStore(IMAGE_STORE_NAME).put(record);
+        request.onsuccess = resolve;
+        request.onerror = reject;
+      });
+      registerUploadedImage(record);
+    }
+    if (validFiles.length) showToast(`Uloženo obrázků: ${validFiles.length}`);
+  }
+
+  async function removeUploadedImage(productId, imageId) {
+    const db = await openImageDatabase();
+    if (db) await new Promise((resolve) => {
+      const request = db.transaction(IMAGE_STORE_NAME, 'readwrite').objectStore(IMAGE_STORE_NAME).delete(imageId);
+      request.onsuccess = resolve;
+      request.onerror = resolve;
+    });
+    const objectUrl = uploadedObjectUrls.get(imageId);
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    uploadedObjectUrls.delete(imageId);
+    uploadedImages.set(productId, (uploadedImages.get(productId) || []).filter((image) => image.id !== imageId));
+  }
 
   function selectProduct(id, closeCatalog = false) {
     const next = byId.get(id) || byId.get(config.defaultProductId) || visibleProducts()[0];
@@ -75,7 +169,7 @@
   }
 
   function renderGallery() {
-    const images = currentProduct.images || [];
+    const images = productImages(currentProduct);
     if (currentImage >= images.length) currentImage = 0;
     const image = images[currentImage];
     els.imageSkeleton.hidden = false;
@@ -95,7 +189,10 @@
     const tabs = [{ id: 'overview', label: 'Přehled' }, { id: 'specs', label: 'Parametry' }];
     if (productVideo(currentProduct)) tabs.push({ id: 'video', label: 'Video' });
     if (!tabs.some((tab) => tab.id === currentTab)) currentTab = 'overview';
+    const scrollable = currentTab === 'overview' || currentTab === 'specs';
+    els.productCopy.classList.toggle('is-scrollable', scrollable);
     els.productCopy.classList.toggle('is-specs', currentTab === 'specs');
+    els.productCopy.classList.toggle('is-overview', currentTab === 'overview');
     els.detailTabs.innerHTML = tabs.map((tab) => `<button class="tab-button${tab.id === currentTab ? ' active' : ''}" data-tab="${tab.id}" type="button">${tab.label}</button>`).join('');
     if (currentTab === 'overview') {
       const features = currentProduct.features?.length ? currentProduct.features : [{ title: 'Hlavní vlastnosti', description: currentProduct.description }];
@@ -109,7 +206,7 @@
   }
 
   function changeImage(step) {
-    const count = currentProduct.images?.length || 0;
+    const count = productImages(currentProduct).length;
     if (count < 2) return;
     currentImage = (currentImage + step + count) % count;
     renderGallery();
@@ -120,16 +217,15 @@
     const categories = ['Vše', ...unique(list.map((product) => product.name))];
     if (!categories.includes(category)) category = 'Vše';
     els.categoryFilters.innerHTML = categories.map((name) => `<button class="filter-chip${name === category ? ' active' : ''}" data-category="${escapeHtml(name)}" type="button">${escapeHtml(name)}</button>`).join('');
-    const query = els.catalogSearch.value.toLocaleLowerCase('cs');
-    const filtered = list.filter((product) => (category === 'Vše' || product.name === category) && `${product.model} ${product.name} ${product.category}`.toLocaleLowerCase('cs').includes(query));
-    els.catalogGrid.innerHTML = filtered.map((product) => `<button class="product-card${product.id === currentProduct?.id ? ' selected' : ''}" data-product="${product.id}" type="button"><span class="product-card-image">${product.images?.[0]?.url ? `<img src="${escapeHtml(product.images[0].url)}" alt="" loading="lazy">` : ''}</span><span class="product-card-copy"><span><small>${escapeHtml(product.name)}</small><strong>${escapeHtml(product.model)}</strong></span><b>${escapeHtml(formatPrice(product.price))}</b></span></button>`).join('');
+    const filtered = list.filter((product) => category === 'Vše' || product.name === category);
+    els.catalogGrid.innerHTML = filtered.map((product) => { const cover = productImages(product)[0]; return `<button class="product-card${product.id === currentProduct?.id ? ' selected' : ''}" data-product="${product.id}" type="button"><span class="product-card-image">${cover?.url ? `<img src="${escapeHtml(cover.url)}" alt="" loading="lazy">` : ''}</span><span class="product-card-copy"><span><small>${escapeHtml(product.name)}</small><strong>${escapeHtml(product.model)}</strong></span><b>${escapeHtml(formatPrice(product.price))}</b></span></button>`; }).join('');
     els.catalogEmpty.hidden = filtered.length > 0;
   }
 
   function setOverlay(overlay, open) {
     overlay.hidden = !open;
     if (overlay === els.catalogOverlay) els.catalogButton.setAttribute('aria-expanded', String(open));
-    if (open && overlay === els.catalogOverlay) { els.catalogSearch.value = ''; category = 'Vše'; renderCatalog(); setTimeout(() => els.catalogSearch.focus(), 20); }
+    if (open && overlay === els.catalogOverlay) { category = 'Vše'; renderCatalog(); }
   }
 
   function openPin() { els.pinInput.value = ''; els.pinError.textContent = ''; setOverlay(els.pinOverlay, true); setTimeout(() => els.pinInput.focus(), 20); }
@@ -142,19 +238,52 @@
     setOverlay(els.adminOverlay, true);
   }
 
-  function renderAdminProducts() {
+  function renderAdminProducts(selectionOverride = null) {
     const list = products.filter((product) => product.brand === els.adminBrand.value);
-    const selected = new Set(config.brand === els.adminBrand.value ? config.productIds : list.map((product) => product.id));
-    els.adminProducts.innerHTML = list.map((product) => `<label class="product-toggle"><input type="checkbox" value="${product.id}" ${selected.has(product.id) ? 'checked' : ''}><span>${escapeHtml(product.model)} · ${escapeHtml(product.name)}</span></label>`).join('');
+    const selected = new Set(selectionOverride || (config.brand === els.adminBrand.value ? config.productIds : list.map((product) => product.id)));
+    const opened = new Set([...els.adminProducts.querySelectorAll('details[open]')].map((details) => details.dataset.adminProduct));
+    els.adminProducts.innerHTML = list.map((product) => {
+      const settings = imageSettings(product.id);
+      const hidden = new Set(settings.hidden);
+      const images = allProductImages(product);
+      const imageRows = images.length ? images.map((image, index) => `<div class="admin-image-row">
+        <label><input class="image-visible" type="checkbox" data-product-id="${product.id}" data-image-key="${escapeHtml(image.key)}" ${hidden.has(image.key) ? '' : 'checked'}><img src="${escapeHtml(image.url)}" alt=""><span>${escapeHtml(image.label || `Obrázek ${index + 1}`)}</span></label>
+        ${image.removable ? `<button class="image-remove" type="button" data-product-id="${product.id}" data-image-key="${escapeHtml(image.key)}" aria-label="Odstranit obrázek">×</button>` : ''}
+      </div>`).join('') : '<p class="help">Produkt zatím nemá žádný obrázek.</p>';
+      const visibleCount = images.filter((image) => !hidden.has(image.key)).length;
+      return `<details class="admin-product-card" data-admin-product="${product.id}" ${opened.has(product.id) ? 'open' : ''}>
+        <summary><input class="product-enabled" type="checkbox" value="${product.id}" ${selected.has(product.id) ? 'checked' : ''}><span><strong>${escapeHtml(product.model)}</strong><small>${escapeHtml(product.name)} · PN ${escapeHtml(product.id)}</small></span><b>${visibleCount}/${images.length} fotek</b></summary>
+        <div class="admin-product-detail">
+          <div class="admin-image-list">${imageRows}</div>
+          <div class="admin-image-actions">
+            <label class="button secondary file-button">Nahrát ze zařízení<input class="admin-image-upload" type="file" accept="image/*" multiple data-product-id="${product.id}"></label>
+            <div class="linked-image-form"><input class="large-input admin-image-path" type="text" inputmode="url" placeholder="media/${escapeHtml(product.id)}-detail.jpg"><button class="button secondary add-image-path" type="button" data-product-id="${product.id}">Přidat cestu</button></div>
+          </div>
+        </div>
+      </details>`;
+    }).join('');
     renderAdminDefaultOptions();
   }
 
   function renderAdminDefaultOptions() {
     const list = products.filter((product) => product.brand === els.adminBrand.value);
-    const selectedIds = [...els.adminProducts.querySelectorAll('input:checked')].map((input) => input.value);
+    const selectedIds = adminSelectedIds();
     const previousValue = els.adminDefaultProduct.value || config.defaultProductId;
     els.adminDefaultProduct.innerHTML = list.filter((product) => selectedIds.includes(product.id)).map((product) => `<option value="${product.id}">${escapeHtml(product.model)}</option>`).join('');
     els.adminDefaultProduct.value = selectedIds.includes(previousValue) ? previousValue : selectedIds[0] || '';
+  }
+
+  function adminSelectedIds() {
+    return [...els.adminProducts.querySelectorAll('.product-enabled:checked')].map((input) => input.value);
+  }
+
+  function refreshImagesAfterAdminChange(productId) {
+    if (currentProduct?.id === productId) {
+      const count = productImages(currentProduct).length;
+      if (currentImage >= count) currentImage = Math.max(0, count - 1);
+      renderGallery();
+    }
+    renderCatalog();
   }
 
   async function requestWakeLock() {
@@ -175,18 +304,75 @@
   els.detailTabs.addEventListener('click', (event) => { const button = event.target.closest('[data-tab]'); if (button) { currentTab = button.dataset.tab; els.productCopy.scrollTop = 0; els.detailPanel.scrollTop = 0; renderTabs(); } });
   els.catalogButton.addEventListener('click', () => setOverlay(els.catalogOverlay, true));
   els.closeCatalog.addEventListener('click', () => setOverlay(els.catalogOverlay, false));
-  els.catalogSearch.addEventListener('input', renderCatalog);
   els.categoryFilters.addEventListener('click', (event) => { const button = event.target.closest('[data-category]'); if (button) { category = button.dataset.category; renderCatalog(); } });
   els.catalogGrid.addEventListener('click', (event) => { const button = event.target.closest('[data-product]'); if (button) selectProduct(button.dataset.product, true); });
   document.querySelectorAll('[data-close]').forEach((button) => button.addEventListener('click', () => setOverlay($(button.dataset.close), false)));
   els.pinForm.addEventListener('submit', (event) => { event.preventDefault(); if (els.pinInput.value === ADMIN_PIN) openAdmin(); else { els.pinError.textContent = 'Nesprávný PIN.'; els.pinInput.select(); } });
   els.closeAdmin.addEventListener('click', () => setOverlay(els.adminOverlay, false));
   els.adminBrand.addEventListener('change', renderAdminProducts);
-  els.adminProducts.addEventListener('change', renderAdminDefaultOptions);
-  els.toggleAllProducts.addEventListener('click', () => { const inputs = [...els.adminProducts.querySelectorAll('input')]; const all = inputs.every((input) => input.checked); inputs.forEach((input) => { input.checked = !all; }); renderAdminDefaultOptions(); });
+  els.adminProducts.addEventListener('change', async (event) => {
+    const input = event.target;
+    if (input.matches('.product-enabled')) return renderAdminDefaultOptions();
+    if (input.matches('.image-visible')) {
+      const settings = imageSettings(input.dataset.productId);
+      const hidden = new Set(settings.hidden);
+      if (input.checked) hidden.delete(input.dataset.imageKey); else hidden.add(input.dataset.imageKey);
+      settings.hidden = [...hidden];
+      persistConfig();
+      const card = input.closest('.admin-product-card');
+      const count = allProductImages(byId.get(input.dataset.productId)).filter((image) => !hidden.has(image.key)).length;
+      const badge = card?.querySelector('summary b');
+      if (badge) badge.textContent = `${count}/${allProductImages(byId.get(input.dataset.productId)).length} fotek`;
+      refreshImagesAfterAdminChange(input.dataset.productId);
+      return;
+    }
+    if (input.matches('.admin-image-upload')) {
+      const selectedIds = adminSelectedIds();
+      try {
+        await storeUploadedImages(input.dataset.productId, input.files || []);
+      } catch {
+        showToast('Obrázek se nepodařilo uložit. Zkontrolujte volné místo v zařízení.');
+      }
+      renderAdminProducts(selectedIds);
+      refreshImagesAfterAdminChange(input.dataset.productId);
+    }
+  });
+  els.adminProducts.addEventListener('click', async (event) => {
+    if (event.target.matches('.product-enabled')) event.stopPropagation();
+    const removeButton = event.target.closest('.image-remove');
+    if (removeButton) {
+      const productId = removeButton.dataset.productId;
+      const imageKey = removeButton.dataset.imageKey;
+      const selectedIds = adminSelectedIds();
+      const settings = imageSettings(productId);
+      if (imageKey.startsWith('linked:')) settings.linked = settings.linked.filter((image) => image.id !== imageKey.slice(7));
+      if (imageKey.startsWith('uploaded:')) await removeUploadedImage(productId, imageKey.slice(9));
+      settings.hidden = settings.hidden.filter((key) => key !== imageKey);
+      persistConfig();
+      renderAdminProducts(selectedIds);
+      refreshImagesAfterAdminChange(productId);
+      showToast('Obrázek byl odstraněn.');
+      return;
+    }
+    const addButton = event.target.closest('.add-image-path');
+    if (addButton) {
+      const productId = addButton.dataset.productId;
+      const pathInput = addButton.closest('.linked-image-form').querySelector('.admin-image-path');
+      const url = pathInput.value.trim().replaceAll('\\', '/');
+      if (!url) return showToast('Zadejte cestu k obrázku.');
+      if (/^javascript:/i.test(url)) return showToast('Tuto cestu nelze použít.');
+      const selectedIds = adminSelectedIds();
+      imageSettings(productId).linked.push({ id: `${Date.now()}-${Math.random().toString(16).slice(2)}`, url, label: url.split('/').pop() || 'Lokální obrázek' });
+      persistConfig();
+      renderAdminProducts(selectedIds);
+      refreshImagesAfterAdminChange(productId);
+      showToast('Cesta k obrázku byla přidána.');
+    }
+  });
+  els.toggleAllProducts.addEventListener('click', () => { const inputs = [...els.adminProducts.querySelectorAll('.product-enabled')]; const all = inputs.every((input) => input.checked); inputs.forEach((input) => { input.checked = !all; }); renderAdminDefaultOptions(); });
   els.fullscreenButton.addEventListener('click', async () => { try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen(); else await document.exitFullscreen(); } catch { showToast('Celou obrazovku bude řídit kiosk aplikace.'); } });
   els.saveAdmin.addEventListener('click', () => {
-    const selected = [...els.adminProducts.querySelectorAll('input:checked')].map((input) => input.value);
+    const selected = adminSelectedIds();
     if (!selected.length) return showToast('Vyberte alespoň jeden produkt.');
     const oldProductId = currentProduct.id;
     config.brand = els.adminBrand.value;
@@ -207,10 +393,6 @@
     adminTapTimer = setTimeout(() => { adminTapCount = 0; }, 3500);
     if (adminTapCount >= 5) { adminTapCount = 0; openPin(); }
   });
-  const startPress = () => { clearTimeout(pressTimer); pressTimer = setTimeout(openPin, 1300); };
-  const cancelPress = () => clearTimeout(pressTimer);
-  ['pointerdown','touchstart'].forEach((name) => els.brandButton.addEventListener(name, startPress, { passive: true }));
-  ['pointerup','pointercancel','pointerleave','touchend'].forEach((name) => els.brandButton.addEventListener(name, cancelPress, { passive: true }));
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') requestWakeLock(); });
   document.addEventListener('keydown', (event) => {
     if (event.key === 'Escape') [els.catalogOverlay, els.pinOverlay, els.adminOverlay].forEach((overlay) => setOverlay(overlay, false));
@@ -218,7 +400,11 @@
     if (event.key === 'ArrowRight') changeImage(1);
   });
 
-  selectProduct(config.defaultProductId);
-  requestWakeLock();
+  window.addEventListener('beforeunload', () => uploadedObjectUrls.forEach((url) => URL.revokeObjectURL(url)));
+  (async () => {
+    await loadUploadedImages();
+    selectProduct(config.defaultProductId);
+    requestWakeLock();
+  })();
 })();
 
