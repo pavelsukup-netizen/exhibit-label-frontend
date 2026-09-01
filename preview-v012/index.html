@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
   <meta name="theme-color" content="#0c1117">
   <title>Výstavní katalog</title>
-  <link rel="stylesheet" href="assets/app.css?v=20260830-2">
-  <link rel="stylesheet" href="assets/overrides.css?v=20260830-2">
+  <link rel="stylesheet" href="assets/app.css?v=20260901-6">
+  <link rel="stylesheet" href="assets/overrides.css?v=20260901-6">
 </head>
 <body>
   <div id="app" class="app" data-brand="Hisense">
     <header class="topbar">
       <button id="catalogButton" class="icon-button menu-button" type="button" aria-label="Vybrat produkt" aria-controls="catalogOverlay" aria-expanded="false"><span></span><span></span><span></span></button>
-      <button id="brandButton" class="brand-lock" type="button" aria-label="Logo značky, dlouhým stiskem otevřete správu"><img id="brandLogo" alt="Hisense"></button>
+      <div id="brandButton" class="brand-lock" aria-label="Logo značky"><img id="brandLogo" alt="Hisense"></div>
       <div class="header-product"><span id="headerCategory"></span><strong id="headerModel"></strong></div>
       <div id="headerPrice" class="header-price"></div>
       <button id="secretAdminButton" class="secret-admin" type="button" aria-label=""></button>
@@ -21,8 +21,10 @@
     <main class="product-view">
       <section id="gallery" class="gallery" aria-label="Fotografie produktu">
         <div class="image-stage">
-          <div id="imageSkeleton" class="image-skeleton"></div>
-          <img id="heroImage" alt="" draggable="false">
+          <div class="image-box">
+            <div id="imageSkeleton" class="image-skeleton"></div>
+            <img id="heroImage" alt="" draggable="false">
+          </div>
           <button id="previousImage" class="gallery-arrow previous" type="button" aria-label="Předchozí obrázek">‹</button>
           <button id="nextImage" class="gallery-arrow next" type="button" aria-label="Další obrázek">›</button>
           <div id="imageCounter" class="image-counter"></div>
@@ -47,7 +49,6 @@
           <button id="closeCatalog" class="icon-button close-button" type="button" aria-label="Zavřít výběr">×</button>
         </div>
         <div class="catalog-controls">
-          <label class="search-field"><span aria-hidden="true">⌕</span><input id="catalogSearch" type="search" placeholder="Hledat model nebo typ produktu" autocomplete="off"></label>
           <div id="categoryFilters" class="filter-row" aria-label="Kategorie"></div>
         </div>
         <div id="catalogGrid" class="catalog-grid"></div>
@@ -73,7 +74,8 @@
         <div class="admin-body">
           <label class="field">Značka tabletu<select id="adminBrand"></select></label>
           <div class="admin-section">
-            <div class="section-heading"><strong>Zobrazené produkty</strong><button id="toggleAllProducts" class="text-button" type="button">Změnit výběr</button></div>
+            <div class="section-heading"><strong>Produkty a jejich obrázky</strong><button id="toggleAllProducts" class="text-button" type="button">Změnit výběr</button></div>
+            <p class="help">Rozbalením produktu lze skrýt jednotlivé fotografie, přidat obrázek ze zařízení nebo zadat cestu k lokálnímu souboru.</p>
             <div id="adminProducts" class="admin-products"></div>
           </div>
           <label class="field">Výchozí produkt<select id="adminDefaultProduct"></select></label>
@@ -94,11 +96,11 @@
 
     <div id="toast" class="toast" role="status" aria-live="polite"></div>
   </div>
-  <script src="data/products-hisense.js?v=20260830-2"></script>
-  <script src="data/products-gorenje.js?v=20260830-2"></script>
-  <script src="data/products-mora.js?v=20260830-2"></script>
-  <script src="data/products.js?v=20260830-2"></script>
-  <script src="assets/app.js?v=20260830-2"></script>
+  <script src="data/products-hisense.js?v=20260901-6"></script>
+  <script src="data/products-gorenje.js?v=20260901-6"></script>
+  <script src="data/products-mora.js?v=20260901-6"></script>
+  <script src="data/products.js?v=20260901-6"></script>
+  <script src="assets/app.js?v=20260901-6"></script>
 </body>
 </html>
 
