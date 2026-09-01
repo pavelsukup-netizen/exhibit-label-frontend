@@ -75,11 +75,42 @@
 
 .catalog-controls {
   display: block;
+  min-width: 0;
   margin: 24px 0 18px;
 }
 
+.catalog-shell {
+  width: 100vw;
+  max-width: 100vw;
+  min-width: 0;
+  overflow: hidden;
+}
+
 .filter-row {
+  max-width: 100%;
+  min-width: 0;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  overflow: visible;
   padding: 2px 0;
+}
+
+.filter-chip {
+  flex: 0 0 auto;
+}
+
+.catalog-grid {
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.product-card {
+  width: 100%;
+  max-width: 100%;
 }
 
 .admin-card {
@@ -259,6 +290,7 @@
   .product-copy.is-specs .product-heading,
   .product-copy.is-overview .product-heading { padding-top: 26px; }
 
+  .catalog-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .linked-image-form { grid-template-columns: 1fr; }
 }
 
