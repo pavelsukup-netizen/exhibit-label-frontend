@@ -8,6 +8,8 @@
   const IMAGE_STORE_NAME = 'product-images';
   const ADMIN_PIN = '2468';
   const brands = ['Hisense', 'Gorenje', 'Mora'];
+  const applianceCategoryOrder = ['Trouby', 'Varné desky', 'Sporáky', 'Mikrovlnné trouby', 'Digestoře', 'Chladničky', 'Myčky nádobí', 'Pračky', 'Sušičky', 'Malé domácí spotřebiče'];
+  const hisenseCategoryOrder = ['Televizory', 'Projektory', 'Soundbary', ...applianceCategoryOrder];
   const brandPresentation = {
     Hisense: { color: '#009b9b', logo: 'https://hisense-static.hgecdn.net/img/w_full/medias/Hisense-logo-green.png?context=bWFzdGVyfGltYWdlc3wyMTM5fGltYWdlL3BuZ3xhRFpsTDJnMU9DOHhOVEV6T1RFM05UZzFPREl3Tmk5SWFYTmxibk5sTFd4dloyOHRaM0psWlc0dWNHNW58MjllY2M3OWI3ZDdlYTcyNTNjNzVjZDk4YTlmMTc2OWNiNGNlZmFkMzZlMWQxNWQ0YTY5NGJjY2M3ZTJkNjk3NQ' },
     Gorenje: { color: '#62666a', logo: 'https://gorenje-static.hgecdn.net/img/w_full/medias/gorenje-logo-narrow-CZ.webp?context=bWFzdGVyfGltYWdlc3w0MjU5MnxpbWFnZS93ZWJwfGFEYzFMMmhrTkM4eE5UTXhORFEzTnpNeE9ERTNOQzluYjNKbGJtcGxMV3h2WjI4dGJtRnljbTkzTFVOYUxuZGxZbkF8ODU3MmNhZjljZjI3YjczOTdhYThkZGQyYzYxYTYyNDY4MzMzZDIxNDA3MDg5ZTZiMzRiOTU1M2E0OTFkNTIwNQ' },
@@ -15,6 +17,7 @@
   };
   const products = catalog.products;
   const byId = new Map(products.map((product) => [product.id, product]));
+  const catalogSourceOrder = new Map(products.map((product, index) => [product.id, index]));
   const defaultConfig = { brand: 'Hisense', productIds: [], defaultProductId: '', videoOverrides: {}, imageSettings: {} };
   const loadConfig = () => { try { return { ...defaultConfig, ...JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}') }; } catch { return { ...defaultConfig }; } };
   let config = loadConfig();
@@ -71,6 +74,34 @@
   }
   normalizeConfig();
   const visibleProducts = () => config.productIds.map((id) => byId.get(id)).filter(Boolean);
+  const catalogCategoryOrder = () => config.brand === 'Hisense' ? hisenseCategoryOrder : applianceCategoryOrder;
+
+  function catalogCategory(product) {
+    const text = `${product.name || ''} ${product.category || ''} ${product.model || ''}`.toLocaleLowerCase('cs');
+    if (text.includes('televiz') || /(^|\s)tv(\s|$)/.test(text)) return 'Televizory';
+    if (text.includes('projektor')) return 'Projektory';
+    if (text.includes('soundbar')) return 'Soundbary';
+    if (text.includes('mikrovln')) return 'Mikrovlnné trouby';
+    if (text.includes('troub')) return 'Trouby';
+    if (text.includes('varná deska') || text.includes('indukční deska') || text.includes('sklokeram')) return 'Varné desky';
+    if (text.includes('sporák')) return 'Sporáky';
+    if (text.includes('odsavač') || text.includes('digestoř')) return 'Digestoře';
+    if (text.includes('chladnič') || text.includes('lednic') || text.includes('mraz')) return 'Chladničky';
+    if (text.includes('myčk')) return 'Myčky nádobí';
+    if (text.includes('sušička potravin') || text.includes('mezikus') || text.includes('držák na obuv') || text.includes('držák na boty')) return 'Malé domácí spotřebiče';
+    if (text.includes('pračk')) return 'Pračky';
+    if (text.includes('sušič')) return 'Sušičky';
+    return 'Malé domácí spotřebiče';
+  }
+
+  function sortedCatalogProducts() {
+    const order = catalogCategoryOrder();
+    return [...visibleProducts()].sort((a, b) => {
+      const categoryDifference = order.indexOf(catalogCategory(a)) - order.indexOf(catalogCategory(b));
+      return categoryDifference || catalogSourceOrder.get(a.id) - catalogSourceOrder.get(b.id);
+    });
+  }
+
   function showToast(message) { els.toast.textContent = message; els.toast.classList.add('show'); clearTimeout(showToast.timer); showToast.timer = setTimeout(() => els.toast.classList.remove('show'), 2200); }
 
   function openImageDatabase() {
@@ -213,11 +244,12 @@
   }
 
   function renderCatalog() {
-    const list = visibleProducts();
-    const categories = ['Vše', ...unique(list.map((product) => product.name))];
+    const list = sortedCatalogProducts();
+    const populatedCategories = new Set(list.map(catalogCategory));
+    const categories = ['Vše', ...catalogCategoryOrder().filter((name) => populatedCategories.has(name))];
     if (!categories.includes(category)) category = 'Vše';
     els.categoryFilters.innerHTML = categories.map((name) => `<button class="filter-chip${name === category ? ' active' : ''}" data-category="${escapeHtml(name)}" type="button">${escapeHtml(name)}</button>`).join('');
-    const filtered = list.filter((product) => category === 'Vše' || product.name === category);
+    const filtered = list.filter((product) => category === 'Vše' || catalogCategory(product) === category);
     els.catalogGrid.innerHTML = filtered.map((product) => { const cover = productImages(product)[0]; return `<button class="product-card${product.id === currentProduct?.id ? ' selected' : ''}" data-product="${product.id}" type="button"><span class="product-card-image">${cover?.url ? `<img src="${escapeHtml(cover.url)}" alt="" loading="lazy">` : ''}</span><span class="product-card-copy"><span><small>${escapeHtml(product.name)}</small><strong>${escapeHtml(product.model)}</strong></span><b>${escapeHtml(formatPrice(product.price))}</b></span></button>`; }).join('');
     els.catalogEmpty.hidden = filtered.length > 0;
   }
