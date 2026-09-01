@@ -6,6 +6,8 @@ Statická tabletová aplikace pro výstavní popisky produktů Hisense, Gorenje 
 
 - 52 aktivních produktů načtených ze seznamu pro výstavu; stabilní ID každého produktu je jeho PN.
 - celoobrazovkový výběr produktů z hamburger menu bez vyhledávacího pole a automatického otevírání klávesnice;
+- katalog se třemi kartami na řádek, svislým rolováním a zalomenými filtry sjednocených produktových skupin;
+- pořadí skupin podle výstavní zóny: u Hisense nejprve televizory, projektory a soundbary, poté velké a malé spotřebiče; u Gorenje a MORA začíná katalog troubami;
 - velké dotykové prvky a responzivní rozvržení pro 11″ tablet 1920 × 1200;
 - barevně odlišené zóny značek s originálními logy a cenou označenou `DMOC s DPH`;
 - úplné technické parametry a rozšířené popisy klíčových funkcí;
