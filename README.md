@@ -5,12 +5,13 @@ Statická tabletová aplikace pro výstavní popisky produktů Hisense, Gorenje 
 ## Co obsahuje
 
 - 52 aktivních produktů načtených ze seznamu pro výstavu; stabilní ID každého produktu je jeho PN.
-- celoobrazovkový výběr produktů z hamburger menu;
+- celoobrazovkový výběr produktů z hamburger menu bez vyhledávacího pole a automatického otevírání klávesnice;
 - velké dotykové prvky a responzivní rozvržení pro 11″ tablet 1920 × 1200;
 - barevně odlišené zóny značek s originálními logy a cenou označenou `DMOC s DPH`;
 - úplné technické parametry a rozšířené popisy klíčových funkcí;
-- galerii omezenou na kvalitní produktové fotografie bez nízkých náhledů a 360° mezisnímků;
-- lokální nastavení značky, povolených produktů a výchozího produktu;
+- galerii s pevným responzivním boxem, ve kterém se fotografie vždy zobrazí celá a nezasahuje do šipek ani náhledů;
+- lokální nastavení značky, povolených produktů, výchozího produktu a viditelnosti jednotlivých fotografií;
+- možnost přidat ke konkrétnímu produktu vlastní obrázek ze zařízení nebo relativní cestu k souboru v offline balíčku;
 - volitelnou cestu k videu; bez přiřazeného videa se záložka Video vůbec nevytvoří;
 - Screen Wake Lock jako doplněk kiosk režimu;
 - plné běžné ceny bez akčních/cashback cen.
@@ -29,9 +30,11 @@ Potom otevřete `http://localhost:4173/`.
 
 ## Nastavení tabletu
 
-Správu otevřete dlouhým stiskem názvu značky nebo pěti rychlými dotyky v pravém horním rohu. Výchozí PIN je `2468`.
+Správu otevřete výhradně pěti rychlými dotyky v pravém horním rohu. Výchozí PIN je `2468`. V zákaznické části není žádné textové pole; softwarová klávesnice se může otevřít až po vstupu do administrace.
 
-Nastavení se ukládá do `localStorage` pod klíčem `exhibit-label-device-v2`. Každý tablet proto může mít jinou značku a jiný výběr produktů, přestože všechny používají stejnou aplikaci.
+Nastavení se ukládá do `localStorage` pod klíčem `exhibit-label-device-v2`. Nahrané obrázky se ukládají jako soubory do lokální databáze IndexedDB `exhibit-label-media-v1`. Každý tablet proto může mít jinou značku, výběr produktů i vlastní fotografie, přestože všechny používají stejnou aplikaci.
+
+Relativní cesta k obrázku, například `media/20017916-detail.jpg`, slouží pro soubory zabalené společně s offline aplikací. Pro výběr běžné fotografie z úložiště Androidu použijte tlačítko **Nahrát ze zařízení**; aplikace si vytvoří vlastní trvalou lokální kopii.
 
 Video se zadává jako relativní cesta, například `media/745997.mp4`. Doporučený cílový formát pro tablet je MP4, video H.264 (AVC), zvuk AAC, rozlišení nejvýše 1920 × 1080.
 
