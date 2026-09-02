@@ -1,0 +1,108 @@
+{
+  "date": "2026-09-02",
+  "source": "Oficiální české stránky Hisense, načtené v uživatelově Chromu.",
+  "originalProducts": 52,
+  "addedProducts": 8,
+  "totalProducts": 60,
+  "images": 106,
+  "specifications": 535,
+  "priceNote": "Převzata jediná zobrazená běžná cena v Kč; na zdrojových stránkách nebyla označena akční cena. Samostatné označení DMOC web neposkytuje.",
+  "notes": [
+    "Anglické popisy a podnadpisy nových produktů přeloženy do češtiny.",
+    "Obecný text o 85palcových a větších obrazovkách výslovně označen jako informace o nabídce značky, nikoli úhlopříčce konkrétního modelu.",
+    "Parametry převzaty z produktových stránek včetně jejich případných nekonzistencí; údaj DLED nenahrazován odhadem.",
+    "Videa nepřiřazena; návštěvnická záložka zůstává skrytá.",
+    "Všechny zdrojové obrázky načteny v prohlížeči a ověřeny skutečné rozměry.",
+    "Původní 52 produktů, jejich soubory a uložená nastavení tabletů nezměněny."
+  ],
+  "products": [
+    {
+      "id": "20019162",
+      "model": "65UR9S",
+      "price": 44990,
+      "currency": "CZK",
+      "sourceUrl": "https://cz.hisense.com/produkty/tv/rgb-miniled-tv/TV-SET-65UR9S-HSN/p/000000000020019162",
+      "images": 16,
+      "features": 30,
+      "specifications": 94,
+      "minImageWidth": 1200
+    },
+    {
+      "id": "20019612",
+      "model": "55UR8S",
+      "price": 27990,
+      "currency": "CZK",
+      "sourceUrl": "https://cz.hisense.com/produkty/tv/rgb-miniled-tv/TV-SET-55UR8S-HSN/p/000000000020019612",
+      "images": 15,
+      "features": 28,
+      "specifications": 93,
+      "minImageWidth": 1200
+    },
+    {
+      "id": "20018804",
+      "model": "55E8S",
+      "price": 17490,
+      "currency": "CZK",
+      "sourceUrl": "https://cz.hisense.com/produkty/tv/uled-miniled-tv/TV-SET-55E8S-HSN/p/000000000020018804",
+      "images": 14,
+      "features": 25,
+      "specifications": 91,
+      "minImageWidth": 1200
+    },
+    {
+      "id": "20018725",
+      "model": "65U7SE",
+      "price": 22990,
+      "currency": "CZK",
+      "sourceUrl": "https://cz.hisense.com/produkty/tv/uled-miniled-tv/TV-SET-65U7SE-HSN/p/000000000020018725",
+      "images": 15,
+      "features": 26,
+      "specifications": 95,
+      "minImageWidth": 1200
+    },
+    {
+      "id": "20017736",
+      "model": "C3",
+      "price": 39990,
+      "currency": "CZK",
+      "sourceUrl": "https://cz.hisense.com/produkty/domaci-kino-s-laserovou-projekci/vsechna-laserova-dom%C3%A1ai-kina/smart-mini-projector/PROJECTOR-C3-HSN/p/000000000020017736",
+      "images": 16,
+      "features": 20,
+      "specifications": 57,
+      "minImageWidth": 999
+    },
+    {
+      "id": "20016767",
+      "model": "AX3120Q",
+      "price": 7990,
+      "currency": "CZK",
+      "sourceUrl": "https://cz.hisense.com/produkty/soundbary/domaci-audio/SOUNDBAR-SYSTEM-AX3120Q-HSN/p/000000000020016767",
+      "images": 12,
+      "features": 8,
+      "specifications": 35,
+      "minImageWidth": 1200
+    },
+    {
+      "id": "20016768",
+      "model": "AX5140Q",
+      "price": 13990,
+      "currency": "CZK",
+      "sourceUrl": "https://cz.hisense.com/produkty/soundbary/domaci-audio/SOUNDBAR-SYSTEM-AX5140Q-HSN/p/000000000020016768",
+      "images": 12,
+      "features": 8,
+      "specifications": 34,
+      "minImageWidth": 1200
+    },
+    {
+      "id": "20014434",
+      "model": "HS3100",
+      "price": 4990,
+      "currency": "CZK",
+      "sourceUrl": "https://cz.hisense.com/produkty/soundbary/domaci-audio/SOUNDBAR-SYSTEM-HS3100-HSN/p/000000000020014434",
+      "images": 6,
+      "features": 7,
+      "specifications": 36,
+      "minImageWidth": 1281
+    }
+  ]
+}
