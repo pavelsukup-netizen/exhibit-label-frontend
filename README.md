@@ -4,7 +4,7 @@ Statická tabletová aplikace pro výstavní popisky produktů Hisense, Gorenje 
 
 ## Co obsahuje
 
-- 52 aktivních produktů načtených ze seznamu pro výstavu; stabilní ID každého produktu je jeho PN.
+- 60 aktivních produktů: 52 z původního seznamu pro výstavu a 8 doplněných Hisense TV/audio; stabilní ID každého produktu je jeho PN.
 - celoobrazovkový výběr produktů z hamburger menu bez vyhledávacího pole a automatického otevírání klávesnice;
 - katalog se třemi kartami na řádek, svislým rolováním a zalomenými filtry sjednocených produktových skupin;
 - pořadí skupin podle výstavní zóny: u Hisense nejprve televizory, projektory a soundbary, poté velké a malé spotřebiče; u Gorenje a MORA začíná katalog troubami;
@@ -40,11 +40,15 @@ Relativní cesta k obrázku, například `media/20017916-detail.jpg`, slouží p
 
 Video se zadává jako relativní cesta, například `media/745997.mp4`. Doporučený cílový formát pro tablet je MP4, video H.264 (AVC), zvuk AAC, rozlišení nejvýše 1920 × 1080.
 
+Nové produkty se na dříve nakonfigurovaném tabletu automaticky nepřidávají do uloženého výběru. V administraci je zaškrtněte a uložte nastavení. Původní výběr produktů, vlastní fotografie ani videa se aktualizací nemažou.
+
 ## Datové soubory
 
 - `data/products-*.js` — katalog rozdělený podle značek, aby se dal spolehlivě publikovat a načíst i z `file://`;
-- `data/products.js` — malé sloučení tří částí do výsledného katalogu;
+- `data/products.js` — malé sloučení datových částí do výsledného katalogu;
 - `data/products-source.json` — zdrojové řádky a URL z Excelu;
+- `data/products-hisense-av.js` — 8 Hisense TV/audio produktů doplněných 2. 9. 2026;
+- `data/import-report-hisense-av.json` — zdroje, ceny a kontrolní počty nových produktů;
 - `data/import-report.json` — kontrolní výstup importu;
 - `scripts/validate-catalog.mjs` — kontrola počtu produktů, PN, cen a obrázků.
 
@@ -58,5 +62,4 @@ Video se zadává jako relativní cesta, například `media/745997.mp4`. Doporu�
 
 ## Provoz 7:30–18:00
 
-Webová aplikace žádá systém o udržení obrazovky zapnuté, ale spolehlivý časový plán, automatický start po restartu a uzamčení tabletu musí zajistit kiosk aplikace nebo Samsung Knox. Tato část bude dokončena až po odsouhlasení vzhledu a chování preview.
-
+Webová aplikace žádá systém o udržení obrazovky zapnuté, ale spolehlivý časový plán, automatický start po restartu a uzamčení tabletu musí zajistit kiosk aplikace nebo vlastní Android kiosk řešení (bez placeného Knoxu). Tato část bude dokončena až po odsouhlasení vzhledu a chování preview.
