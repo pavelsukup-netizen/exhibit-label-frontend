@@ -6,7 +6,8 @@
   const STORAGE_KEY = 'exhibit-label-device-v2';
   const IMAGE_DB_NAME = 'exhibit-label-media-v1';
   const IMAGE_STORE_NAME = 'product-images';
-  const ADMIN_PIN = '2468';
+  const PIN_STORAGE_KEY = 'exhibit-label-admin-pin-v1';
+  const PIN_ITERATIONS = 120000;
   const brands = ['Hisense', 'Gorenje', 'Mora'];
   const applianceCategoryOrder = ['Trouby', 'Varné desky', 'Sporáky', 'Mikrovlnné trouby', 'Digestoře', 'Chladničky', 'Myčky nádobí', 'Pračky', 'Sušičky', 'Malé domácí spotřebiče'];
   const hisenseCategoryOrder = ['Televizory', 'Projektory', 'Soundbary', ...applianceCategoryOrder];
@@ -33,13 +34,37 @@
   const uploadedObjectUrls = new Map();
 
   const $ = (id) => document.getElementById(id);
-  const ids = ['app','gallery','productCopy','brandLogo','headerCategory','headerModel','headerPrice','productEyebrow','productTitle','productDescription','heroImage','imageSkeleton','previousImage','nextImage','imageCounter','thumbnails','detailTabs','detailPanel','catalogButton','catalogOverlay','closeCatalog','categoryFilters','catalogGrid','catalogEmpty','secretAdminButton','brandButton','pinOverlay','pinForm','pinInput','pinError','adminOverlay','closeAdmin','adminBrand','adminProducts','adminDefaultProduct','adminVideo','toggleAllProducts','wakeLockStatus','fullscreenButton','saveAdmin','toast'];
+  const ids = ['app','gallery','productCopy','brandLogo','headerCategory','headerModel','headerPrice','productEyebrow','productTitle','productDescription','heroImage','imageSkeleton','previousImage','nextImage','imageCounter','thumbnails','detailTabs','detailPanel','catalogButton','catalogOverlay','closeCatalog','categoryFilters','catalogGrid','catalogEmpty','secretAdminButton','brandButton','pinOverlay','pinForm','pinInput','pinError','pinSetupOverlay','pinSetupForm','pinSetupInput','pinSetupConfirm','pinSetupError','adminOverlay','closeAdmin','adminBrand','adminProducts','adminDefaultProduct','adminVideo','adminVideoProduct','uploadVideoButton','removeVideoButton','adminVideoUpload','adminVideoStatus','toggleAllProducts','wakeLockStatus','fullscreenButton','saveAdmin','toast'];
   const els = Object.fromEntries(ids.map((id) => [id, $(id)]));
   const unique = (items) => [...new Set(items)];
   const formatPrice = (price) => price ? `${new Intl.NumberFormat('cs-CZ').format(price)} Kč` : 'Cena bude doplněna';
   const productVideo = (product) => (config.videoOverrides?.[product.id] || product.video || '').trim();
   const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
   const persistConfig = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
+  const bytesToBase64 = (bytes) => btoa(String.fromCharCode(...bytes));
+  const base64ToBytes = (value) => Uint8Array.from(atob(value), (char) => char.charCodeAt(0));
+
+  async function derivePin(pin, salt, iterations = PIN_ITERATIONS) {
+    const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pin), 'PBKDF2', false, ['deriveBits']);
+    const bits = await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations }, key, 256);
+    return new Uint8Array(bits);
+  }
+
+  async function saveAdminPin(pin) {
+    const salt = crypto.getRandomValues(new Uint8Array(16));
+    const hash = await derivePin(pin, salt);
+    localStorage.setItem(PIN_STORAGE_KEY, JSON.stringify({ salt: bytesToBase64(salt), hash: bytesToBase64(hash), iterations: PIN_ITERATIONS }));
+  }
+
+  async function verifyAdminPin(pin) {
+    try {
+      const credential = JSON.parse(localStorage.getItem(PIN_STORAGE_KEY) || 'null');
+      if (!credential?.salt || !credential?.hash) return false;
+      const actual = await derivePin(pin, base64ToBytes(credential.salt), credential.iterations);
+      const expected = base64ToBytes(credential.hash);
+      return actual.length === expected.length && actual.every((byte, index) => byte === expected[index]);
+    } catch { return false; }
+  }
 
   function imageSettings(productId) {
     config.imageSettings ||= {};
@@ -260,15 +285,47 @@
     if (open && overlay === els.catalogOverlay) { category = 'Vše'; renderCatalog(); }
   }
 
-  function openPin() { els.pinInput.value = ''; els.pinError.textContent = ''; setOverlay(els.pinOverlay, true); setTimeout(() => els.pinInput.focus(), 20); }
+  function openPin() {
+    if (!localStorage.getItem(PIN_STORAGE_KEY)) {
+      els.pinSetupForm.reset();
+      els.pinSetupError.textContent = '';
+      setOverlay(els.pinSetupOverlay, true);
+      setTimeout(() => els.pinSetupInput.focus(), 20);
+      return;
+    }
+    els.pinInput.value = '';
+    els.pinError.textContent = '';
+    setOverlay(els.pinOverlay, true);
+    setTimeout(() => els.pinInput.focus(), 20);
+  }
   function openAdmin() {
     setOverlay(els.pinOverlay, false);
     els.adminBrand.innerHTML = brands.map((brand) => `<option value="${brand}">${brand}</option>`).join('');
     els.adminBrand.value = config.brand;
     renderAdminProducts();
     els.adminVideo.value = productVideo(currentProduct);
+    els.adminVideoProduct.textContent = `(${currentProduct.model} · PN ${currentProduct.id})`;
+    updateAdminVideoStatus();
     setOverlay(els.adminOverlay, true);
   }
+
+  function updateAdminVideoStatus(name = '') {
+    const value = els.adminVideo.value.trim();
+    els.adminVideoStatus.textContent = value
+      ? `Přiřazeno: ${name || value.split('/').pop() || 'video'}`
+      : 'K tomuto produktu není přiřazeno žádné video.';
+    els.removeVideoButton.hidden = !value;
+  }
+
+  window.ExhibitNativeVideo = {
+    selected(productId, url, name) {
+      if (currentProduct?.id !== productId) return;
+      els.adminVideo.value = url;
+      updateAdminVideoStatus(name);
+      showToast('Video bylo zkopírováno do zařízení. Nastavení ještě uložte.');
+    },
+    failed(message) { showToast(message || 'Video se nepodařilo uložit.'); },
+  };
 
   function renderAdminProducts(selectionOverride = null) {
     const list = products.filter((product) => product.brand === els.adminBrand.value);
@@ -320,10 +377,23 @@
 
   async function requestWakeLock() {
     try {
+      const now = new Date();
+      const minutes = now.getHours() * 60 + now.getMinutes();
+      const displayWindowActive = minutes >= 7 * 60 && minutes < 18 * 60;
+      if (!displayWindowActive) {
+        if (wakeLock) await wakeLock.release();
+        wakeLock = null;
+        els.wakeLockStatus.textContent = 'Mimo čas 7:00–18:00';
+        return;
+      }
+      if (wakeLock && !wakeLock.released) {
+        els.wakeLockStatus.textContent = 'Aktivní';
+        return;
+      }
       if ('wakeLock' in navigator && document.visibilityState === 'visible') {
         wakeLock = await navigator.wakeLock.request('screen');
         els.wakeLockStatus.textContent = 'Aktivní';
-        wakeLock.addEventListener('release', () => { els.wakeLockStatus.textContent = 'Uvolněno'; });
+        wakeLock.addEventListener('release', () => { wakeLock = null; els.wakeLockStatus.textContent = 'Uvolněno'; });
       } else els.wakeLockStatus.textContent = 'Řídí kiosk';
     } catch { els.wakeLockStatus.textContent = 'Řídí kiosk'; }
   }
@@ -339,7 +409,23 @@
   els.categoryFilters.addEventListener('click', (event) => { const button = event.target.closest('[data-category]'); if (button) { category = button.dataset.category; renderCatalog(); } });
   els.catalogGrid.addEventListener('click', (event) => { const button = event.target.closest('[data-product]'); if (button) selectProduct(button.dataset.product, true); });
   document.querySelectorAll('[data-close]').forEach((button) => button.addEventListener('click', () => setOverlay($(button.dataset.close), false)));
-  els.pinForm.addEventListener('submit', (event) => { event.preventDefault(); if (els.pinInput.value === ADMIN_PIN) openAdmin(); else { els.pinError.textContent = 'Nesprávný PIN.'; els.pinInput.select(); } });
+  els.pinSetupForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const pin = els.pinSetupInput.value;
+    if (!/^\d{4,8}$/.test(pin)) { els.pinSetupError.textContent = 'Zadejte 4 až 8 číslic.'; return; }
+    if (pin !== els.pinSetupConfirm.value) { els.pinSetupError.textContent = 'Zadané PINy se neshodují.'; return; }
+    try {
+      await saveAdminPin(pin);
+      setOverlay(els.pinSetupOverlay, false);
+      openAdmin();
+      showToast('PIN tohoto tabletu byl nastaven.');
+    } catch { els.pinSetupError.textContent = 'PIN se nepodařilo bezpečně uložit.'; }
+  });
+  els.pinForm.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    if (await verifyAdminPin(els.pinInput.value)) openAdmin();
+    else { els.pinError.textContent = 'Nesprávný PIN.'; els.pinInput.select(); }
+  });
   els.closeAdmin.addEventListener('click', () => setOverlay(els.adminOverlay, false));
   els.adminBrand.addEventListener('change', renderAdminProducts);
   els.adminProducts.addEventListener('change', async (event) => {
@@ -403,6 +489,24 @@
   });
   els.toggleAllProducts.addEventListener('click', () => { const inputs = [...els.adminProducts.querySelectorAll('.product-enabled')]; const all = inputs.every((input) => input.checked); inputs.forEach((input) => { input.checked = !all; }); renderAdminDefaultOptions(); });
   els.fullscreenButton.addEventListener('click', async () => { try { if (!document.fullscreenElement) await document.documentElement.requestFullscreen(); else await document.exitFullscreen(); } catch { showToast('Celou obrazovku bude řídit kiosk aplikace.'); } });
+  els.uploadVideoButton.addEventListener('click', () => {
+    if (window.AndroidMedia?.pickVideo) window.AndroidMedia.pickVideo(currentProduct.id);
+    else els.adminVideoUpload.click();
+  });
+  els.adminVideoUpload.addEventListener('change', () => {
+    const file = els.adminVideoUpload.files?.[0];
+    if (!file) return;
+    if (file.type !== 'video/mp4') return showToast('Vyberte video ve formátu MP4.');
+    els.adminVideo.value = URL.createObjectURL(file);
+    updateAdminVideoStatus(`${file.name} (jen pro tento běh prohlížeče)`);
+    showToast('V internetovém náhledu není lokální video trvalé. V APK se uloží do zařízení.');
+  });
+  els.adminVideo.addEventListener('input', () => updateAdminVideoStatus());
+  els.removeVideoButton.addEventListener('click', () => {
+    els.adminVideo.value = '';
+    els.adminVideoUpload.value = '';
+    updateAdminVideoStatus();
+  });
   els.saveAdmin.addEventListener('click', () => {
     const selected = adminSelectedIds();
     if (!selected.length) return showToast('Vyberte alespoň jeden produkt.');
@@ -426,8 +530,9 @@
     if (adminTapCount >= 5) { adminTapCount = 0; openPin(); }
   });
   document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') requestWakeLock(); });
+  window.setInterval(requestWakeLock, 60_000);
   document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape') [els.catalogOverlay, els.pinOverlay, els.adminOverlay].forEach((overlay) => setOverlay(overlay, false));
+    if (event.key === 'Escape') [els.catalogOverlay, els.pinOverlay, els.pinSetupOverlay, els.adminOverlay].forEach((overlay) => setOverlay(overlay, false));
     if (event.key === 'ArrowLeft') changeImage(-1);
     if (event.key === 'ArrowRight') changeImage(1);
   });
@@ -439,4 +544,3 @@
     requestWakeLock();
   })();
 })();
-

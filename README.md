@@ -32,7 +32,7 @@ Potom otevřete `http://localhost:4173/`.
 
 ## Nastavení tabletu
 
-Správu otevřete výhradně pěti rychlými dotyky v pravém horním rohu. Výchozí PIN je `2468`. V zákaznické části není žádné textové pole; softwarová klávesnice se může otevřít až po vstupu do administrace.
+Správu otevřete výhradně pěti rychlými dotyky v pravém horním rohu. Při prvním vstupu si každý tablet vytvoří vlastní PIN, který se neukládá v čitelné podobě. V zákaznické části není žádné textové pole; softwarová klávesnice se může otevřít až po vstupu do administrace.
 
 Nastavení se ukládá do `localStorage` pod klíčem `exhibit-label-device-v2`. Nahrané obrázky se ukládají jako soubory do lokální databáze IndexedDB `exhibit-label-media-v1`. Každý tablet proto může mít jinou značku, výběr produktů i vlastní fotografie, přestože všechny používají stejnou aplikaci.
 
@@ -60,11 +60,10 @@ Nové produkty se na dříve nakonfigurovaném tabletu automaticky nepřidávaj�
 - MORA `IS 8688 DX` používá potvrzený podklad Planeo a PN `740927`.
 - Obrázky jsou nyní vybírány z originálních/HI-RES zdrojů. Pro finální offline balíček se stáhnou do lokální složky a odkazy se přepíší na relativní cesty.
 
-## Provoz 7:30–18:00
+## Provoz 7:00–18:00
 
-Webová aplikace žádá systém o udržení obrazovky zapnuté, ale spolehlivý časový plán, automatický start po restartu a uzamčení tabletu musí zajistit kiosk aplikace nebo vlastní Android kiosk řešení (bez placeného Knoxu). Tato část bude dokončena až po odsouhlasení vzhledu a chování preview.
+Android aplikace naplánuje probuzení displeje na 7:00, udržuje jej aktivní do 18:00 a potom znovu respektuje systémový časový limit. Plný Lock Task je volitelný; bez Device Owner aplikace používá immersive fullscreen bez systémového připnutí.
 
 ## Testovací Android APK
 
 Nativní projekt je v `android-kiosk/`. GitHub Actions sestaví debug APK se statickým katalogem zabaleným uvnitř. Aplikace běží v landscape/fullscreen režimu, udržuje obrazovku zapnutou a podporuje systémové připnutí i plný Android Lock Task po nastavení jako Device Owner. Podrobný instalační postup je v `android-kiosk/README.md`.
-

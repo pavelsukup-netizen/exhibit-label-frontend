@@ -52,15 +52,15 @@ jobs:
           "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK"
           unzip -p "$APK" assets/web/data/products-hisense-av.js | grep -q '"65UR9S"'
           unzip -p "$APK" assets/web/data/products-hisense-av.js | grep -q '"HS3100"'
-          unzip -p "$APK" assets/web/index.html | grep -q 'data/products-hisense-av.js'
+          unzip -p "$APK" assets/web/index.html | grep -q 'Nahrát video ze zařízení'
+          unzip -p "$APK" classes.dex | strings | grep -q 'product-videos'
 
       - name: Prepare artifact
-        run: cp android-kiosk/app/build/outputs/apk/debug/app-debug.apk ExhibitCatalog-0.1.0-debug.apk
+        run: cp android-kiosk/app/build/outputs/apk/debug/app-debug.apk ExhibitCatalog-0.2.0-debug.apk
 
       - uses: actions/upload-artifact@v4
         with:
           name: ExhibitCatalog-APK
-          path: ExhibitCatalog-0.1.0-debug.apk
+          path: ExhibitCatalog-0.2.0-debug.apk
           if-no-files-found: error
           retention-days: 30
-

@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
   <meta name="theme-color" content="#0c1117">
   <title>Výstavní katalog</title>
-  <link rel="stylesheet" href="assets/app.css?v=20260902-1">
-  <link rel="stylesheet" href="assets/overrides.css?v=20260902-1">
+  <link rel="stylesheet" href="assets/app.css?v=20260904-2">
+  <link rel="stylesheet" href="assets/overrides.css?v=20260904-2">
 </head>
 <body>
   <div id="app" class="app" data-brand="Hisense">
@@ -65,6 +65,17 @@
       </form>
     </div>
 
+    <div id="pinSetupOverlay" class="overlay dialog-overlay" hidden>
+      <form id="pinSetupForm" class="dialog-card">
+        <p class="eyebrow">První nastavení</p><h2>Nastavte PIN správce</h2>
+        <p class="help">PIN platí pouze pro tento tablet a v aplikaci se neukládá v čitelné podobě.</p>
+        <input id="pinSetupInput" class="large-input" type="password" inputmode="numeric" minlength="4" maxlength="8" autocomplete="new-password" placeholder="Nový PIN" aria-label="Nový PIN">
+        <input id="pinSetupConfirm" class="large-input" type="password" inputmode="numeric" minlength="4" maxlength="8" autocomplete="new-password" placeholder="Zopakujte PIN" aria-label="Potvrzení PINu">
+        <p id="pinSetupError" class="form-error" aria-live="polite"></p>
+        <div class="dialog-actions"><button class="button secondary" data-close="pinSetupOverlay" type="button">Zrušit</button><button class="button primary" type="submit">Nastavit PIN</button></div>
+      </form>
+    </div>
+
     <div id="adminOverlay" class="overlay dialog-overlay" hidden>
       <section class="admin-card" role="dialog" aria-modal="true" aria-labelledby="adminTitle">
         <div class="admin-header">
@@ -80,12 +91,18 @@
           </div>
           <label class="field">Výchozí produkt<select id="adminDefaultProduct"></select></label>
           <div class="admin-section">
-            <strong>Video pro právě zobrazený produkt</strong>
-            <p class="help">Zadejte relativní cestu, například <code>media/745997.mp4</code>. Prázdné pole znamená, že záložka Video nebude návštěvníkům zobrazena.</p>
+            <strong>Video pro právě zobrazený produkt <span id="adminVideoProduct"></span></strong>
+            <p class="help">Nahrajte MP4 ze zařízení nebo zadejte přímou adresu. Video se přiřadí k uvedenému PN a bez přiřazeného videa se záložka Video návštěvníkům nezobrazí.</p>
             <input id="adminVideo" class="large-input" type="text" placeholder="media/PN.mp4" autocomplete="off">
+            <div class="admin-video-actions">
+              <button id="uploadVideoButton" class="button secondary" type="button">Nahrát video ze zařízení</button>
+              <button id="removeVideoButton" class="text-button" type="button">Odebrat video</button>
+              <input id="adminVideoUpload" type="file" accept="video/mp4" hidden>
+            </div>
+            <p id="adminVideoStatus" class="help"></p>
           </div>
           <div class="status-grid">
-            <div><span>Provoz výstavy</span><strong>7:30–18:00</strong></div>
+            <div><span>Aktivní displej</span><strong>7:00–18:00</strong></div>
             <div><span>Udržení obrazovky</span><strong id="wakeLockStatus">Kontroluji…</strong></div>
             <div><span>Datový režim</span><strong>Lokální, bez Supabase</strong></div>
           </div>
@@ -101,6 +118,6 @@
   <script src="data/products-gorenje.js?v=20260902-1"></script>
   <script src="data/products-mora.js?v=20260902-1"></script>
   <script src="data/products.js?v=20260902-1"></script>
-  <script src="assets/app.js?v=20260902-1"></script>
+  <script src="assets/app.js?v=20260904-2"></script>
 </body>
 </html>

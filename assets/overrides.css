@@ -252,6 +252,14 @@
   gap: 10px;
 }
 
+.admin-video-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 2px;
+}
+
 .file-button {
   width: fit-content;
   display: inline-flex;
@@ -293,4 +301,3 @@
   .catalog-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .linked-image-form { grid-template-columns: 1fr; }
 }
-
