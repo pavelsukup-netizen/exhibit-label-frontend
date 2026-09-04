@@ -30,15 +30,19 @@
   let adminTapCount = 0;
   let adminTapTimer = null;
   let imageDb = null;
+  let pendingAdminVideos = [];
   const uploadedImages = new Map();
   const uploadedObjectUrls = new Map();
 
   const $ = (id) => document.getElementById(id);
-  const ids = ['app','gallery','productCopy','brandLogo','headerCategory','headerModel','headerPrice','productEyebrow','productTitle','productDescription','heroImage','imageSkeleton','previousImage','nextImage','imageCounter','thumbnails','detailTabs','detailPanel','catalogButton','catalogOverlay','closeCatalog','categoryFilters','catalogGrid','catalogEmpty','secretAdminButton','brandButton','pinOverlay','pinForm','pinInput','pinError','pinSetupOverlay','pinSetupForm','pinSetupInput','pinSetupConfirm','pinSetupError','adminOverlay','closeAdmin','adminBrand','adminProducts','adminDefaultProduct','adminVideo','adminVideoProduct','uploadVideoButton','removeVideoButton','adminVideoUpload','adminVideoStatus','toggleAllProducts','wakeLockStatus','fullscreenButton','saveAdmin','toast'];
+  const ids = ['app','gallery','productCopy','brandLogo','headerCategory','headerModel','headerPrice','productEyebrow','productTitle','productDescription','heroImage','imageSkeleton','previousImage','nextImage','imageCounter','thumbnails','detailTabs','detailPanel','catalogButton','catalogOverlay','closeCatalog','categoryFilters','catalogGrid','catalogEmpty','secretAdminButton','brandButton','pinOverlay','pinForm','pinInput','pinError','pinSetupOverlay','pinSetupForm','pinSetupInput','pinSetupConfirm','pinSetupError','adminOverlay','closeAdmin','adminBrand','adminProducts','adminDefaultProduct','adminVideo','adminVideoProduct','uploadVideoButton','addVideoUrlButton','adminVideoUpload','adminVideoList','adminVideoStatus','toggleAllProducts','wakeLockStatus','fullscreenButton','saveAdmin','toast'];
   const els = Object.fromEntries(ids.map((id) => [id, $(id)]));
   const unique = (items) => [...new Set(items)];
   const formatPrice = (price) => price ? `${new Intl.NumberFormat('cs-CZ').format(price)} Kč` : 'Cena bude doplněna';
-  const productVideo = (product) => (config.videoOverrides?.[product.id] || product.video || '').trim();
+  const productVideos = (product) => {
+    const value = config.videoOverrides?.[product.id] ?? product.video ?? [];
+    return (Array.isArray(value) ? value : [value]).map((video) => String(video || '').trim()).filter(Boolean);
+  };
   const escapeHtml = (value) => String(value ?? '').replace(/[&<>'"]/g, (char) => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[char]));
   const persistConfig = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
   const bytesToBase64 = (bytes) => btoa(String.fromCharCode(...bytes));
@@ -243,9 +247,9 @@
 
   function renderTabs() {
     const tabs = [{ id: 'overview', label: 'Přehled' }, { id: 'specs', label: 'Parametry' }];
-    if (productVideo(currentProduct)) tabs.push({ id: 'video', label: 'Video' });
+    if (productVideos(currentProduct).length) tabs.push({ id: 'video', label: 'Video' });
     if (!tabs.some((tab) => tab.id === currentTab)) currentTab = 'overview';
-    const scrollable = currentTab === 'overview' || currentTab === 'specs';
+    const scrollable = currentTab === 'overview' || currentTab === 'specs' || currentTab === 'video';
     els.productCopy.classList.toggle('is-scrollable', scrollable);
     els.productCopy.classList.toggle('is-specs', currentTab === 'specs');
     els.productCopy.classList.toggle('is-overview', currentTab === 'overview');
@@ -257,7 +261,7 @@
       const specs = currentProduct.specifications || [];
       els.detailPanel.innerHTML = specs.length ? `<dl class="spec-list">${specs.map((spec) => `<div class="spec-row"><dt>${escapeHtml(spec.label)}</dt><dd>${escapeHtml(spec.value)}</dd></div>`).join('')}</dl>` : '<p class="empty-state">Technické parametry budou doplněny po kontrole zdroje.</p>';
     } else {
-      els.detailPanel.innerHTML = `<div class="video-wrap"><video controls playsinline preload="metadata" src="${escapeHtml(productVideo(currentProduct))}"></video></div>`;
+      els.detailPanel.innerHTML = `<div class="video-list">${productVideos(currentProduct).map((video, index) => `<article class="video-item"><strong>Video ${index + 1}</strong><video controls playsinline preload="metadata" src="${escapeHtml(video)}"></video></article>`).join('')}</div>`;
     }
   }
 
@@ -303,25 +307,39 @@
     els.adminBrand.innerHTML = brands.map((brand) => `<option value="${brand}">${brand}</option>`).join('');
     els.adminBrand.value = config.brand;
     renderAdminProducts();
-    els.adminVideo.value = productVideo(currentProduct);
+    pendingAdminVideos = [...productVideos(currentProduct)];
+    els.adminVideo.value = '';
     els.adminVideoProduct.textContent = `(${currentProduct.model} · PN ${currentProduct.id})`;
-    updateAdminVideoStatus();
+    renderAdminVideoList();
     setOverlay(els.adminOverlay, true);
   }
 
-  function updateAdminVideoStatus(name = '') {
-    const value = els.adminVideo.value.trim();
-    els.adminVideoStatus.textContent = value
-      ? `Přiřazeno: ${name || value.split('/').pop() || 'video'}`
+  function renderAdminVideoList() {
+    els.adminVideoList.innerHTML = pendingAdminVideos.map((video, index) => `<div class="admin-video-row"><span>${escapeHtml(video.split('/').pop() || `Video ${index + 1}`)}</span><button class="text-button remove-video" data-video-index="${index}" type="button">Odebrat</button></div>`).join('');
+    els.adminVideoStatus.textContent = pendingAdminVideos.length
+      ? `Přiřazeno videí: ${pendingAdminVideos.length}`
       : 'K tomuto produktu není přiřazeno žádné video.';
-    els.removeVideoButton.hidden = !value;
+  }
+
+  function appendAdminVideo(url) {
+    const value = String(url || '').trim();
+    if (!value || pendingAdminVideos.includes(value)) return false;
+    pendingAdminVideos.push(value);
+    renderAdminVideoList();
+    return true;
+  }
+
+  function commitAdminVideoInput() {
+    const value = els.adminVideo.value.trim();
+    if (!value) return;
+    appendAdminVideo(value);
+    els.adminVideo.value = '';
   }
 
   window.ExhibitNativeVideo = {
     selected(productId, url, name) {
       if (currentProduct?.id !== productId) return;
-      els.adminVideo.value = url;
-      updateAdminVideoStatus(name);
+      appendAdminVideo(url);
       showToast('Video bylo zkopírováno do zařízení. Nastavení ještě uložte.');
     },
     failed(message) { showToast(message || 'Video se nepodařilo uložit.'); },
@@ -497,15 +515,19 @@
     const file = els.adminVideoUpload.files?.[0];
     if (!file) return;
     if (file.type !== 'video/mp4') return showToast('Vyberte video ve formátu MP4.');
-    els.adminVideo.value = URL.createObjectURL(file);
-    updateAdminVideoStatus(`${file.name} (jen pro tento běh prohlížeče)`);
+    appendAdminVideo(URL.createObjectURL(file));
+    renderAdminVideoList();
     showToast('V internetovém náhledu není lokální video trvalé. V APK se uloží do zařízení.');
   });
-  els.adminVideo.addEventListener('input', () => updateAdminVideoStatus());
-  els.removeVideoButton.addEventListener('click', () => {
-    els.adminVideo.value = '';
-    els.adminVideoUpload.value = '';
-    updateAdminVideoStatus();
+  els.addVideoUrlButton.addEventListener('click', () => {
+    if (!els.adminVideo.value.trim()) return showToast('Zadejte adresu videa.');
+    commitAdminVideoInput();
+  });
+  els.adminVideoList.addEventListener('click', (event) => {
+    const button = event.target.closest('.remove-video');
+    if (!button) return;
+    pendingAdminVideos.splice(Number(button.dataset.videoIndex), 1);
+    renderAdminVideoList();
   });
   els.saveAdmin.addEventListener('click', () => {
     const selected = adminSelectedIds();
@@ -514,8 +536,8 @@
     config.brand = els.adminBrand.value;
     config.productIds = selected;
     config.defaultProductId = selected.includes(els.adminDefaultProduct.value) ? els.adminDefaultProduct.value : selected[0];
-    const video = els.adminVideo.value.trim();
-    if (video) config.videoOverrides[oldProductId] = video; else delete config.videoOverrides[oldProductId];
+    commitAdminVideoInput();
+    if (pendingAdminVideos.length) config.videoOverrides[oldProductId] = [...pendingAdminVideos]; else delete config.videoOverrides[oldProductId];
     localStorage.setItem(STORAGE_KEY, JSON.stringify(config));
     normalizeConfig();
     selectProduct(config.defaultProductId);
@@ -536,6 +558,10 @@
     if (event.key === 'ArrowLeft') changeImage(-1);
     if (event.key === 'ArrowRight') changeImage(1);
   });
+  els.detailPanel.addEventListener('play', (event) => {
+    if (event.target.tagName !== 'VIDEO') return;
+    els.detailPanel.querySelectorAll('video').forEach((video) => { if (video !== event.target) video.pause(); });
+  }, true);
 
   window.addEventListener('beforeunload', () => uploadedObjectUrls.forEach((url) => URL.revokeObjectURL(url)));
   (async () => {
@@ -544,3 +570,4 @@
     requestWakeLock();
   })();
 })();
+
