@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Výstavní katalog</string>
+    <string name="device_admin_description">Umožní plný kiosk režim Lock Task na spravovaném výstavním tabletu.</string>
+</resources>
+

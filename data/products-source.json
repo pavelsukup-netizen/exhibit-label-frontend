@@ -1,0 +1,471 @@
+[
+  {
+    "excelRow": 2,
+    "id": "20017916",
+    "brand": "Hisense",
+    "model": "RQ600P7SKE",
+    "category": "chladnička",
+    "sourceUrl": "https://cz.hisense.com/produkty/chlazeni/lednice-hisense/lednice-multidoor/REFRIG-BCD-600W-RQ600P7SKE-HSN/p/000000000020017916",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 3,
+    "id": "20012750",
+    "brand": "Hisense",
+    "model": "RQ768N4GBE",
+    "category": "chladnička",
+    "sourceUrl": "https://cz.hisense.com/produkty/chlazeni/lednice-hisense/lednice-multidoor/REFRIG-BCD-605W-RQ768N4GBE-HSN/p/000000000020012750",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 4,
+    "id": "746722",
+    "brand": "Hisense",
+    "model": "HI6443SRWF",
+    "category": "indukční deska",
+    "sourceUrl": "https://cz.hisense.com/produkty/vareni-a-peceni/all-hobs/prenosne-indukcni-desky/HOB-BI6AC-D1-HI6443SRWF-HSN/p/000000000000746722",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 5,
+    "id": "20015295",
+    "brand": "Hisense",
+    "model": "WF5I1045BWQ",
+    "category": "pračka",
+    "sourceUrl": "https://cz.hisense.com/produkty/prani-a-suseni/pracky/WASHER-WF5I1114W-WF5I1045BWQ-HSN/p/000000000020015295",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 6,
+    "id": "745230",
+    "brand": "Hisense",
+    "model": "HV693A65UVAD",
+    "category": "myčka",
+    "sourceUrl": "https://cz.hisense.com/produkty/dishwashing/built-in-dishwashers/DISHWASH-DW50-2-HV693A65UVAD-HSN/p/000000000000745230",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 7,
+    "id": "20015578",
+    "brand": "Hisense",
+    "model": "DH5I104BWAB",
+    "category": "sušička",
+    "sourceUrl": "https://cz.hisense.com/produkty/prani-a-suseni/susicky/DRYER-DH5I104BWAB-DH5I104BWAB-HSN/p/000000000020015578",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 8,
+    "id": "743933",
+    "brand": "Hisense",
+    "model": "BFS615S8B",
+    "category": "Trouba",
+    "sourceUrl": "https://cz.hisense.com/produkty/vareni-a-peceni/all-ovens/built-in-ovens/OVEN-BO3SCCJ01-7-BFS615S8B-HSN/p/000000000000743933",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 9,
+    "id": "747757",
+    "brand": "Hisense",
+    "model": "HAF2700DHA",
+    "category": "Air fryer",
+    "sourceUrl": "https://cz.hisense.com/produkty/vareni-a-peceni/male-spotrebice/fritezy/AIR-FRYER-HAF2700DHA/p/000000000000747757",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 10,
+    "id": "747320",
+    "brand": "Hisense",
+    "model": "HVC676999DA",
+    "category": "Vacuum cleaners",
+    "sourceUrl": "https://cz.hisense.com/produkty/pece-o-domacnost/vysavace/VACUUM-CLEANER-HVC676999DA-HSN/p/000000000000747320",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 11,
+    "id": "745997",
+    "brand": "Gorenje",
+    "model": "NRK618C61X4WFE",
+    "category": "Chladnička 185cm",
+    "sourceUrl": "https://cz.gorenje.com/spotrebice/chlazeni-a-mrazeni/Vsechny-lednice/REFRIG-HZF3368AED-NRK618C61X4WFE-GOR/p/000000000000745997",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 12,
+    "id": "745544",
+    "brand": "Gorenje",
+    "model": "NRB620C61X4WFE",
+    "category": "Chladnička 200cm",
+    "sourceUrl": "https://cz.gorenje.com/spotrebice/chlazeni-a-mrazeni/Vsechny-lednice/REFRIG-HZF4168AED-NRB620C61X4WFE-GOR/p/000000000000745544",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 13,
+    "id": "20015397",
+    "brand": "Gorenje",
+    "model": "GS673A97X",
+    "category": "Myčka 60cm volně stojící",
+    "sourceUrl": "https://cz.gorenje.com/spotrebice/myti-nadobi/mycky/DISHWASHER-WD16-A821Xi-GS673A97X-GOR/p/000000000020015397",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 14,
+    "id": "745548",
+    "brand": "Gorenje",
+    "model": "FASTB38WIFI",
+    "category": "Myčka 60cm plněintegrovaná",
+    "sourceUrl": "https://cz.gorenje.com/spotrebice/myti-nadobi/mycky/DISHWASH-DW50-2-FASTB38WIFI-GOR/p/000000000000745548",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 15,
+    "id": "748104",
+    "brand": "Gorenje",
+    "model": "GI6432MSCWF",
+    "category": "Indukční deska",
+    "sourceUrl": "https://www.planeo.cz/gorenje-gi6432mscwf",
+    "sourceType": "retailer"
+  },
+  {
+    "excelRow": 16,
+    "id": "738567",
+    "brand": "Gorenje",
+    "model": "BPSX6737E13BG",
+    "category": "Trouba",
+    "sourceUrl": "https://cz.gorenje.com/spotrebice/vareni-a-peceni/vestavne-pecici-trouby/OVEN-BO3PY4C01-9-BPSX6737E13BG-GOR/p/000000000000738567",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 17,
+    "id": "745016",
+    "brand": "Gorenje",
+    "model": "BSA6138B",
+    "category": "Trouba",
+    "sourceUrl": "https://cz.gorenje.com/spotrebice/vareni-a-peceni/vestavne-pecici-trouby/OVEN-BO3SBBK01-7-BSA6138B-GOR/p/000000000000745016",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 18,
+    "id": "747646",
+    "brand": "Gorenje",
+    "model": "WG814A55 TotalFresh",
+    "category": "pračka",
+    "sourceUrl": "https://cz.gorenje.com/spotrebice/prani-a-suseni/pracky/WASHER-PS26-8714A-WG814A5P5-GOR/p/000000000000747646",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 19,
+    "id": "747648",
+    "brand": "Gorenje",
+    "model": "DG89BP CompleteDry",
+    "category": "Sušička",
+    "sourceUrl": "https://cz.gorenje.com/spotrebice/prani-a-suseni/susicky/DRYER-SP26-4892B-DG89BP-GOR/p/000000000000747648",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 20,
+    "id": "748260",
+    "brand": "Gorenje",
+    "model": "WF694A1P FastWashPro",
+    "category": "pračka",
+    "sourceUrl": "https://www.planeo.cz/gorenje-wf694a1p-fastwashpro",
+    "sourceType": "retailer"
+  },
+  {
+    "excelRow": 21,
+    "id": "748301",
+    "brand": "Gorenje",
+    "model": "DF69B FastDryPro",
+    "category": "Sušička",
+    "sourceUrl": "https://www.planeo.cz/gorenje-df69b-fastdrypro",
+    "sourceType": "retailer"
+  },
+  {
+    "excelRow": 22,
+    "id": "20018019",
+    "brand": "Gorenje",
+    "model": "SKGUP1",
+    "category": "Mezikus",
+    "sourceUrl": "https://cz.gorenje.com/spotrebice/prani-a-suseni/prislusenstvi-prani-a-suseni/STACKING-KIT-SKGUP1/p/000000000020018019",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 23,
+    "id": "976860",
+    "brand": "Gorenje",
+    "model": "SWG1",
+    "category": "Držák na boty",
+    "sourceUrl": "https://cz.gorenje.com/spotrebice/prani-a-suseni/prislusenstvi-prani-a-suseni/SHOEWASH-HOLDER-PS-26-SWG1-ASSY/p/000000000000976860",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 24,
+    "id": "744400",
+    "brand": "Gorenje",
+    "model": "BM341M3DBGH",
+    "category": "mikrovlnka",
+    "sourceUrl": "https://cz.gorenje.com/spotrebice/vareni-a-peceni/mikrovlnne-trouby/OVEN-TM934E3GP-S00E00-BM341M3DBGH-GOR/p/000000000000744400",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 25,
+    "id": "743850",
+    "brand": "Gorenje",
+    "model": "FDK500DE",
+    "category": "sušička potravin",
+    "sourceUrl": "https://cz.gorenje.com/spotrebice/priprava-pokrmu/susicky-potravin/FOOD-DEHYDRATOR-FDK500DE/p/000000000000743850",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 26,
+    "id": "743906",
+    "brand": "Gorenje",
+    "model": "K17DPB",
+    "category": "rychlovarná konvice",
+    "sourceUrl": "https://cz.gorenje.com/spotrebice/priprava-pokrmu/rychlovarne-konvice/KETTLE-K17DPB/p/000000000000743906",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 27,
+    "id": "742296",
+    "brand": "Gorenje",
+    "model": "MMC1500SCX",
+    "category": "kuchyňský robot",
+    "sourceUrl": "https://www.planeo.cz/gorenje-mmc1500scx",
+    "sourceType": "retailer"
+  },
+  {
+    "excelRow": 28,
+    "id": "377478",
+    "brand": "Gorenje",
+    "model": "R506E",
+    "category": "kráječ",
+    "sourceUrl": "https://cz.gorenje.com/spotrebice/priprava-pokrmu/elektricke-krajece/FOOD-SLICER-R506E-GOR/p/000000000000377478",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 29,
+    "id": "741592",
+    "brand": "Gorenje",
+    "model": "SM703GCB",
+    "category": "sandwichovač",
+    "sourceUrl": "https://cz.gorenje.com/spotrebice/vareni-a-peceni/grills/kontaktni-grily-a-toastovace/CONTACT-GRILL-MINI-SM703GCB/p/000000000000741592",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 30,
+    "id": "747057",
+    "brand": "Gorenje",
+    "model": "SVC222230AEW",
+    "category": "tyčový vysavač",
+    "sourceUrl": "https://cz.gorenje.com/spotrebice/domaci-a-osobni-pece-/vysavace-a-parni-cistice/VACUUM-CLEANER-SVC222230AEW-GOR/p/000000000000747057",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 31,
+    "id": "743848",
+    "brand": "Gorenje",
+    "model": "VS120EPRO",
+    "category": "vakuovačka",
+    "sourceUrl": "https://cz.gorenje.com/spotrebice/priprava-pokrmu/vakuovacky-vakuovacky/VACUUM-SEALER-VS120E-PRO/p/000000000000743848",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 32,
+    "id": "740823",
+    "brand": "Mora",
+    "model": "OV 686 GB",
+    "category": "odsavač",
+    "sourceUrl": "https://www.mora.cz/kominovy-odsavac-ov-686-gb-740823/",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 33,
+    "id": "737305",
+    "brand": "Mora",
+    "model": "VDSS 654 FF",
+    "category": "varná deska",
+    "sourceUrl": "https://www.mora.cz/vdss-654-ff/",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 34,
+    "id": "738329",
+    "brand": "Mora",
+    "model": "VMT 445 B",
+    "category": "vestavná mikrovlnka",
+    "sourceUrl": "https://www.mora.cz/vestavna-mikrovlnna-trouba-vmt-445-b-738329/",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 35,
+    "id": "739645",
+    "brand": "Mora",
+    "model": "VDP 645 GB9",
+    "category": "varná deska",
+    "sourceUrl": "https://www.mora.cz/plynova-vestavna-deska-vdp-645-gb9/",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 36,
+    "id": "736210",
+    "brand": "Mora",
+    "model": "OV 686 GW",
+    "category": "odsavač",
+    "sourceUrl": "https://www.mora.cz/ov-686-gw-736210/",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 37,
+    "id": "745494",
+    "brand": "Mora",
+    "model": "K 8668 B1S",
+    "category": "sporák",
+    "sourceUrl": "https://www.mora.cz/kombinovany-sporak-k-8668-b1s-745494/",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 38,
+    "id": "738767",
+    "brand": "Mora",
+    "model": "VTS 785 BW",
+    "category": "vestavná trouba",
+    "sourceUrl": "https://www.mora.cz/elektricka-trouba-samostatna-s-funkci-pary-vts-785-bw-738767/",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 39,
+    "id": "738330",
+    "brand": "Mora",
+    "model": "VMT 445 W",
+    "category": "vestavná mikrovlnka",
+    "sourceUrl": "https://www.mora.cz/vestavna-mikrovlnna-trouba-vmt-445-w-738330/",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 40,
+    "id": "744293",
+    "brand": "Mora",
+    "model": "VTCS 556 BXB",
+    "category": "vestavná trouba",
+    "sourceUrl": "https://www.mora.cz/elektricka-trouba-samostatna-s-funkci-pary-vtcs-556-bxb-744293/",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 41,
+    "id": "738775",
+    "brand": "Mora",
+    "model": "VTPS 787 BXB",
+    "category": "vestavná trouba",
+    "sourceUrl": "https://www.mora.cz/vtps-787-bxb-738775/",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 42,
+    "id": "738766",
+    "brand": "Mora",
+    "model": "VTS 785 BXB",
+    "category": "vestavná trouba",
+    "sourceUrl": "https://www.mora.cz/elektricka-trouba-samostatna-s-funkci-pary-vts-785-bxb-738766/",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 43,
+    "id": "742404",
+    "brand": "Mora",
+    "model": "C 5655 DW",
+    "category": "sporák",
+    "sourceUrl": "https://www.planeo.cz/mora-c-5655-dw",
+    "sourceType": "retailer"
+  },
+  {
+    "excelRow": 44,
+    "id": "745566",
+    "brand": "Mora",
+    "model": "IMB 6689",
+    "category": "myčka",
+    "sourceUrl": "https://www.mora.cz/vestavna-integrovana-mycka-imb-6689-745566/",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 45,
+    "id": "744295",
+    "brand": "Mora",
+    "model": "VTPS 786 DB",
+    "category": "vestavná trouba",
+    "sourceUrl": "https://www.mora.cz/elektricka-trouba-samostatna-s-funkci-pary-vtps-786-db/",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 46,
+    "id": "745291",
+    "brand": "Mora",
+    "model": "VDIS 677 FF",
+    "category": "varná deska",
+    "sourceUrl": "https://www.mora.cz/indukcni-vestavna-sklokeramicka-deska-vdis-677-ff-745291/",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 47,
+    "id": "740927",
+    "brand": "Mora",
+    "model": "IS 8688 DX",
+    "category": "sporák",
+    "sourceUrl": "https://www.planeo.cz/mora-is-8688-dx",
+    "sourceType": "retailer"
+  },
+  {
+    "excelRow": 48,
+    "id": "738771",
+    "brand": "Mora",
+    "model": "VTCS 777 BX",
+    "category": "vestavná trouba",
+    "sourceUrl": "https://www.mora.cz/vtcs-777-bx/",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 49,
+    "id": "20015683",
+    "brand": "Mora",
+    "model": "VCMDN 3024",
+    "category": "chladnička",
+    "sourceUrl": "https://www.mora.cz/vestavna-chladnicka-vcmdn-3024-20015683/",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 50,
+    "id": "748789",
+    "brand": "Mora",
+    "model": "VDIMS 78H C PureMatt",
+    "category": "varná deska",
+    "sourceUrl": "https://www.mora.cz/indukcni-vestavna-sklokeramicka-deska-vdims-78h-c-purematt/",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 51,
+    "id": "740925",
+    "brand": "Mora",
+    "model": "K 5655 BW",
+    "category": "sporák",
+    "sourceUrl": "https://www.planeo.cz/mora-k-5655-bw",
+    "sourceType": "retailer"
+  },
+  {
+    "excelRow": 52,
+    "id": "748356",
+    "brand": "Mora",
+    "model": "IMA 6677",
+    "category": "myčka",
+    "sourceUrl": "https://www.mora.cz/vestavna-integrovana-mycka-ima-6677-748356/",
+    "sourceType": "brand"
+  },
+  {
+    "excelRow": 53,
+    "id": "746954",
+    "brand": "Mora",
+    "model": "MT 423 B",
+    "category": "mikrovlnka",
+    "sourceUrl": "https://www.mora.cz/volne-stojici-mikrovlnna-trouba-mt-423-b-746954/",
+    "sourceType": "brand"
+  }
+]
+

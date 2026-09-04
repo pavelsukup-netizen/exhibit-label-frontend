@@ -1,0 +1,5 @@
+data/raw-scrape*.json
+data/raw-browser*.json
+data/raw-gorenje*.json
+data/raw-planeo*.json
+

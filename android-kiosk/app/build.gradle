@@ -1,0 +1,40 @@
+plugins {
+    id "com.android.application"
+}
+
+android {
+    namespace "cz.exhibit.catalog"
+    compileSdk 35
+
+    defaultConfig {
+        applicationId "cz.exhibit.catalog"
+        minSdk 26
+        targetSdk 35
+        versionCode 1
+        versionName "0.1.0"
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+}
+
+def deployedPreview = rootProject.file("../preview-v012")
+def webSource = deployedPreview.exists() ? deployedPreview : rootProject.file("../")
+def generatedWeb = layout.buildDirectory.dir("generated/web-assets")
+
+tasks.register("syncCatalogWeb", Copy) {
+    from(webSource) {
+        include "index.html"
+        include "assets/**"
+        include "data/products-*.js"
+        include "data/products.js"
+    }
+    into(generatedWeb.map { it.dir("web") })
+}
+
+android.sourceSets.main.assets.srcDir(generatedWeb)
+tasks.named("preBuild").configure { dependsOn("syncCatalogWeb") }
+
