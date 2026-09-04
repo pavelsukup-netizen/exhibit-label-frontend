@@ -162,7 +162,7 @@ public final class MainActivity extends Activity {
         new Thread(() -> {
             String safeId = productId.replaceAll("[^A-Za-z0-9._-]", "_");
             File directory = new File(getFilesDir(), "product-videos");
-            File target = new File(directory, safeId + ".mp4");
+            File target = new File(directory, safeId + "-" + System.currentTimeMillis() + ".mp4");
             try {
                 if (!directory.exists() && !directory.mkdirs()) throw new IllegalStateException("Nelze vytvořit složku.");
                 try (InputStream input = getContentResolver().openInputStream(source);
