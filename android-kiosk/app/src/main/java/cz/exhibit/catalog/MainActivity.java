@@ -212,11 +212,14 @@ public final class MainActivity extends Activity {
                 new ComponentName(this, KioskDeviceAdminReceiver.class),
                 new String[]{getPackageName()}
             );
-            try {
-                startLockTask();
-            } catch (IllegalArgumentException | SecurityException ignored) {
-                // Immersive mode remains active if the device policy is incomplete.
-            }
+        }
+
+        try {
+            // Without Device Owner Android starts user-confirmed screen pinning.
+            // With Device Owner the allow-list above turns this into silent Lock Task.
+            startLockTask();
+        } catch (IllegalArgumentException | SecurityException ignored) {
+            // Immersive mode remains active if screen pinning is unavailable.
         }
     }
 
@@ -250,3 +253,4 @@ public final class MainActivity extends Activity {
         super.onDestroy();
     }
 }
+
