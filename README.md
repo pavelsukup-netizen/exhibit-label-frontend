@@ -63,3 +63,8 @@ Nové produkty se na dříve nakonfigurovaném tabletu automaticky nepřidávaj�
 ## Provoz 7:30–18:00
 
 Webová aplikace žádá systém o udržení obrazovky zapnuté, ale spolehlivý časový plán, automatický start po restartu a uzamčení tabletu musí zajistit kiosk aplikace nebo vlastní Android kiosk řešení (bez placeného Knoxu). Tato část bude dokončena až po odsouhlasení vzhledu a chování preview.
+
+## Testovací Android APK
+
+Nativní projekt je v `android-kiosk/`. GitHub Actions sestaví debug APK se statickým katalogem zabaleným uvnitř. Aplikace běží v landscape/fullscreen režimu, udržuje obrazovku zapnutou a podporuje systémové připnutí i plný Android Lock Task po nastavení jako Device Owner. Podrobný instalační postup je v `android-kiosk/README.md`.
+
