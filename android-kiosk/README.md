@@ -22,5 +22,5 @@ adb install -r .\ExhibitCatalog-0.1.0-debug.apk
 
 Při prvním běžném spuštění Android nabídne systémové připnutí obrazovky. To stačí pro první test. Plný kiosk bez možnosti opuštění aplikace nastavíme až po ověření APK; příkaz Device Owner vyžaduje čistý nebo továrně resetovaný tablet bez přidaných účtů.
 
-Debug APK je určené pro test. Po ověření se vytvoří podepsané release APK se stejným `applicationId`, aby aktualizace zachovaly lokální nastavení.
+Debug APK je určené jen pro první test a nepoužívá finální stabilní podpis. Před ostrou konfigurací tabletů vytvoříme trvale podepsané release APK; přechod z tohoto debug sestavení může vyžadovat odinstalaci a tím smazat jeho zkušební lokální nastavení.
 
