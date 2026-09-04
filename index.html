@@ -92,13 +92,14 @@
           <label class="field">Výchozí produkt<select id="adminDefaultProduct"></select></label>
           <div class="admin-section">
             <strong>Video pro právě zobrazený produkt <span id="adminVideoProduct"></span></strong>
-            <p class="help">Nahrajte MP4 ze zařízení nebo zadejte přímou adresu. Video se přiřadí k uvedenému PN a bez přiřazeného videa se záložka Video návštěvníkům nezobrazí.</p>
-            <input id="adminVideo" class="large-input" type="text" placeholder="media/PN.mp4" autocomplete="off">
+            <p class="help">Nahrajte jedno nebo více MP4 ze zařízení, případně přidejte přímou adresu. Bez přiřazeného videa se záložka Video návštěvníkům nezobrazí.</p>
+            <input id="adminVideo" class="large-input" type="text" placeholder="Přímá adresa videa (volitelné)" autocomplete="off">
             <div class="admin-video-actions">
               <button id="uploadVideoButton" class="button secondary" type="button">Nahrát video ze zařízení</button>
-              <button id="removeVideoButton" class="text-button" type="button">Odebrat video</button>
+              <button id="addVideoUrlButton" class="text-button" type="button">Přidat adresu</button>
               <input id="adminVideoUpload" type="file" accept="video/mp4" hidden>
             </div>
+            <div id="adminVideoList" class="admin-video-list"></div>
             <p id="adminVideoStatus" class="help"></p>
           </div>
           <div class="status-grid">
@@ -121,3 +122,4 @@
   <script src="assets/app.js?v=20260904-2"></script>
 </body>
 </html>
+
