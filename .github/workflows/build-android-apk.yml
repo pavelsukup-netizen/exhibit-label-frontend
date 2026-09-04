@@ -46,6 +46,14 @@ jobs:
         working-directory: android-kiosk
         run: gradle --no-daemon :app:assembleDebug
 
+      - name: Verify APK signature and bundled catalog
+        run: |
+          APK="android-kiosk/app/build/outputs/apk/debug/app-debug.apk"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs "$APK"
+          unzip -p "$APK" assets/web/data/products-hisense-av.js | grep -q '"65UR9S"'
+          unzip -p "$APK" assets/web/data/products-hisense-av.js | grep -q '"HS3100"'
+          unzip -p "$APK" assets/web/index.html | grep -q 'data/products-hisense-av.js'
+
       - name: Prepare artifact
         run: cp android-kiosk/app/build/outputs/apk/debug/app-debug.apk ExhibitCatalog-0.1.0-debug.apk
 
