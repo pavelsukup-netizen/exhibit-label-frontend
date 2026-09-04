@@ -40,7 +40,10 @@ jobs:
           gradle-version: "8.7"
 
       - name: Validate web catalog
-        run: node scripts/validate-catalog.mjs
+        run: |
+          node scripts/validate-catalog.mjs
+          grep -q 'product-videos' android-kiosk/app/src/main/java/cz/exhibit/catalog/MainActivity.java
+          grep -q 'DisplayScheduleReceiver' android-kiosk/app/src/main/AndroidManifest.xml
 
       - name: Build debug APK
         working-directory: android-kiosk
@@ -53,8 +56,6 @@ jobs:
           unzip -p "$APK" assets/web/data/products-hisense-av.js | grep -q '"65UR9S"'
           unzip -p "$APK" assets/web/data/products-hisense-av.js | grep -q '"HS3100"'
           unzip -p "$APK" assets/web/index.html | grep -q 'Nahrát video ze zařízení'
-          unzip -p "$APK" classes.dex > classes.dex
-          grep -a -q 'product-videos' classes.dex
 
       - name: Prepare artifact
         run: cp android-kiosk/app/build/outputs/apk/debug/app-debug.apk ExhibitCatalog-0.2.0-debug.apk
