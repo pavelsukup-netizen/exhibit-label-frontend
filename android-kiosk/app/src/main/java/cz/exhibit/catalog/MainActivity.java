@@ -283,30 +283,43 @@ public final class MainActivity extends Activity {
     private final class OwnerBridge {
         @JavascriptInterface public String status() {
             DevicePolicyManager policy = (DevicePolicyManager) getSystemService(DEVICE_POLICY_SERVICE);
-            return policy.isDeviceOwnerApp(getPackageName()) ? "Device Owner aktivní" : "Device Owner není aktivní";
+            if (!policy.isDeviceOwnerApp(getPackageName())) return "Device Owner není aktivní – vyžaduje aktivaci přes USB";
+            return DisplayScheduleReceiver.isPaused(MainActivity.this)
+                ? "Device Owner aktivní · kiosk pozastaven" : "Device Owner aktivní · kiosk zapnutý";
         }
 
         @JavascriptInterface public void requestExit() {
+            requestOwnerAction("remove");
+        }
+
+        @JavascriptInterface public void pauseKiosk() { requestOwnerAction("pause"); }
+        @JavascriptInterface public void resumeKiosk() { requestOwnerAction("resume"); }
+
+        private void requestOwnerAction(String action) {
             runOnUiThread(() -> webView.evaluateJavascript(
                 "document.getElementById('adminOverlay').hidden ? null : localStorage.getItem('exhibit-label-admin-pin-v1')",
                 encoded -> {
                     try {
                         Object decoded = new JSONTokener(encoded).nextValue();
                         if (!(decoded instanceof String)) return;
-                        confirmOwnerExit(new JSONObject((String) decoded));
+                        confirmOwnerAction(new JSONObject((String) decoded), action);
                     } catch (Exception ignored) { }
                 }));
         }
     }
 
-    private void confirmOwnerExit(JSONObject credential) {
+    private void confirmOwnerAction(JSONObject credential, String action) {
         EditText input = new EditText(this);
         input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD);
         input.setHint("Administrátorský PIN");
         AlertDialog dialog = new AlertDialog.Builder(this)
-            .setTitle("Vypnout kiosk a odebrat správu tabletu")
-            .setMessage("Tablet bude opět volně ovladatelný. Automatické probouzení se vypne. Data aplikace zůstanou zachována; odinstalace je smaže. Zadejte svůj PIN.")
-            .setView(input).setNegativeButton("Zrušit", null).setPositiveButton("Odemknout tablet", null).create();
+            .setTitle(action.equals("resume") ? "Zapnout kiosk" : action.equals("pause") ? "Dočasně vypnout kiosk" : "Odebrat správu pro odinstalaci")
+            .setMessage(action.equals("resume")
+                ? "Zapne se uzamčený katalog a denní plán 7:00–18:00. Vyžaduje již aktivního Device Owner. Zadejte svůj PIN."
+                : action.equals("pause")
+                ? "Aplikace se zavře a budíky se pozastaví. Správa Device Owner ZŮSTANE zachována. Kiosk znovu zapnete v administraci bez počítače. Zadejte svůj PIN."
+                : "POZOR: Toto není běžné vypnutí aplikace. Správa Device Owner bude odebrána. Její nové nastavení vyžaduje počítač a USB. Data zůstanou zachována, odinstalace je smaže. Zadejte svůj PIN.")
+            .setView(input).setNegativeButton("Zrušit", null).setPositiveButton(action.equals("resume") ? "Zapnout kiosk" : action.equals("pause") ? "Dočasně vypnout" : "Odebrat správu", null).create();
         dialog.setOnShowListener(unused -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(view -> {
             dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
             String pin = input.getText().toString();
@@ -324,7 +337,11 @@ public final class MainActivity extends Activity {
                 runOnUiThread(() -> {
                     if (!dialog.isShowing() || isFinishing() || isDestroyed()) return;
                     dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
-                    if (valid) { dialog.dismiss(); releaseOwner(); }
+                    if (valid) {
+                        dialog.dismiss();
+                        if (action.equals("resume")) resumeOwnerKiosk();
+                        else releaseOwner(action.equals("remove"));
+                    }
                     else { input.setError("Nesprávný PIN"); input.setText(""); }
                 });
             }, "owner-pin").start();
@@ -333,7 +350,7 @@ public final class MainActivity extends Activity {
     }
 
     @SuppressWarnings("deprecation")
-    private void releaseOwner() {
+    private void releaseOwner(boolean removeOwner) {
         leavingKiosk = true;
         getSharedPreferences("kiosk-control", MODE_PRIVATE).edit().putBoolean("paused", true).commit();
         DisplayScheduleReceiver.cancel(this);
@@ -342,22 +359,51 @@ public final class MainActivity extends Activity {
             DevicePolicyManager policy = (DevicePolicyManager) getSystemService(DEVICE_POLICY_SERVICE);
             ComponentName admin = new ComponentName(this, KioskDeviceAdminReceiver.class);
             if (policy.isDeviceOwnerApp(getPackageName())) {
-                policy.setLockTaskPackages(admin, new String[0]);
-                if (Build.VERSION.SDK_INT >= 28) policy.setLockTaskFeatures(admin, DevicePolicyManager.LOCK_TASK_FEATURE_GLOBAL_ACTIONS);
                 policy.setKeyguardDisabled(admin, false);
-                policy.clearDeviceOwnerApp(getPackageName());
-                if (policy.isDeviceOwnerApp(getPackageName())) throw new IllegalStateException("Správa zůstala aktivní.");
+                if (removeOwner) {
+                    policy.setLockTaskPackages(admin, new String[0]);
+                    if (Build.VERSION.SDK_INT >= 28) policy.setLockTaskFeatures(admin, DevicePolicyManager.LOCK_TASK_FEATURE_GLOBAL_ACTIONS);
+                    policy.clearDeviceOwnerApp(getPackageName());
+                    if (policy.isDeviceOwnerApp(getPackageName())) throw new IllegalStateException("Správa zůstala aktivní.");
+                }
             }
-            if (policy.isAdminActive(admin)) policy.removeActiveAdmin(admin);
-            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON | WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            if (removeOwner && policy.isAdminActive(admin)) policy.removeActiveAdmin(admin);
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON | WindowManager.LayoutParams.FLAG_FULLSCREEN | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON);
+            if (Build.VERSION.SDK_INT >= 27) { setTurnScreenOn(false); setShowWhenLocked(false); }
+            webView.evaluateJavascript("document.querySelectorAll('video').forEach(v=>v.pause())", null);
             webView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
             startActivity(new Intent(Settings.ACTION_SETTINGS));
             finishAndRemoveTask();
         } catch (Exception error) {
-            new AlertDialog.Builder(this).setTitle("Odebrání správy není dokončené")
-                .setMessage("Android nedovolil dokončit odebrání správy: " + error.getMessage() + ". Automatické probouzení je zastavené. Otevřete nastavení a ověřte správce zařízení.")
+            new AlertDialog.Builder(this).setTitle("Akce není dokončená")
+                .setMessage("Android nedovolil dokončit akci: " + error.getMessage() + ". Automatické probouzení je zastavené. Ověřte stav správy v administraci.")
                 .setPositiveButton("Nastavení", (d, w) -> startActivity(new Intent(Settings.ACTION_SETTINGS)))
                 .setNegativeButton("Zavřít", null).show();
+        }
+    }
+
+    private void resumeOwnerKiosk() {
+        DevicePolicyManager policy = (DevicePolicyManager) getSystemService(DEVICE_POLICY_SERVICE);
+        if (!policy.isDeviceOwnerApp(getPackageName())) {
+            new AlertDialog.Builder(this).setTitle("Nejdřív aktivujte Device Owner")
+                .setMessage("Správa tabletu byla odebrána nebo ještě nebyla nastavena. Připojte tablet k počítači přes USB a aktivujte Device Owner. Aplikace si toto oprávnění sama udělit nemůže.")
+                .setPositiveButton("Rozumím", null).show();
+            return;
+        }
+        leavingKiosk = false;
+        getSharedPreferences("kiosk-control", MODE_PRIVATE).edit().putBoolean("paused", false).commit();
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        DisplayScheduleReceiver.schedule(this);
+        updateDisplayWindow();
+        enterImmersiveMode();
+        startKioskMode();
+        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        if (manager.getLockTaskModeState() == ActivityManager.LOCK_TASK_MODE_LOCKED) {
+            webView.evaluateJavascript("document.getElementById('closeAdmin').click()", null);
+        } else {
+            new AlertDialog.Builder(this).setTitle("Kiosk se nepodařilo uzamknout")
+                .setMessage("Device Owner existuje, ale Android nepotvrdil Lock Task. Nepovažujte tablet za uzamčený.")
+                .setPositiveButton("Rozumím", null).show();
         }
     }
 
