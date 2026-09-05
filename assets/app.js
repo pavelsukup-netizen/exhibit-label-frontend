@@ -452,6 +452,12 @@
   document.getElementById('exitOwnerButton').addEventListener('click', () => {
     if (!els.adminOverlay.hidden) window.AndroidOwner?.requestExit();
   });
+  document.getElementById('resumeKioskButton').addEventListener('click', () => {
+    if (!els.adminOverlay.hidden) window.AndroidOwner?.resumeKiosk?.();
+  });
+  document.getElementById('pauseKioskButton').addEventListener('click', () => {
+    if (!els.adminOverlay.hidden) window.AndroidOwner?.pauseKiosk?.();
+  });
   els.adminBrand.addEventListener('change', renderAdminProducts);
   els.adminProducts.addEventListener('change', async (event) => {
     const input = event.target;
