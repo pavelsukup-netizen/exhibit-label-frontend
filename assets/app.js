@@ -303,6 +303,10 @@
     setTimeout(() => els.pinInput.focus(), 20);
   }
   function openAdmin() {
+    const ownerControls = document.getElementById('ownerControls');
+    ownerControls.hidden = !window.AndroidOwner;
+    ownerControls.style.display = window.AndroidOwner ? 'grid' : 'none';
+    if (window.AndroidOwner) document.getElementById('ownerStatus').textContent = window.AndroidOwner.status();
     setOverlay(els.pinOverlay, false);
     els.adminBrand.innerHTML = brands.map((brand) => `<option value="${brand}">${brand}</option>`).join('');
     els.adminBrand.value = config.brand;
@@ -445,6 +449,9 @@
     else { els.pinError.textContent = 'Nesprávný PIN.'; els.pinInput.select(); }
   });
   els.closeAdmin.addEventListener('click', () => setOverlay(els.adminOverlay, false));
+  document.getElementById('exitOwnerButton').addEventListener('click', () => {
+    if (!els.adminOverlay.hidden) window.AndroidOwner?.requestExit();
+  });
   els.adminBrand.addEventListener('change', renderAdminProducts);
   els.adminProducts.addEventListener('change', async (event) => {
     const input = event.target;
@@ -570,4 +577,3 @@
     requestWakeLock();
   })();
 })();
-
