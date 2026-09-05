@@ -17,6 +17,7 @@ public final class DisplayScheduleReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
+        if (isPaused(context)) return;
         schedule(context);
         if (isDisplayWindowActive()) wakeAndOpen(context);
         else refreshRunningActivity(context);
@@ -28,7 +29,22 @@ public final class DisplayScheduleReceiver extends BroadcastReceiver {
         return minutes >= START_HOUR * 60 && minutes < END_HOUR * 60;
     }
 
+    static boolean isPaused(Context context) {
+        return context.getSharedPreferences("kiosk-control", Context.MODE_PRIVATE).getBoolean("paused", false);
+    }
+
+    static void cancel(Context context) {
+        AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        for (int code : new int[]{1001, 1002}) {
+            PendingIntent pending = PendingIntent.getBroadcast(context, code,
+                new Intent(context, DisplayScheduleReceiver.class).setAction(ACTION_SCHEDULE),
+                PendingIntent.FLAG_NO_CREATE | PendingIntent.FLAG_IMMUTABLE);
+            if (pending != null) { if (manager != null) manager.cancel(pending); pending.cancel(); }
+        }
+    }
+
     static void schedule(Context context) {
+        if (isPaused(context)) return;
         AlarmManager manager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (manager == null) return;
         scheduleAlarm(context, manager, START_HOUR, 1001);
