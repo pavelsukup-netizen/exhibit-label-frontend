@@ -1,6 +1,15 @@
 package cz.exhibit.catalog;
 
 import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.AlertDialog;
+import android.widget.EditText;
+import android.text.InputType;
+import android.util.Base64;
+import javax.crypto.SecretKeyFactory;
+import javax.crypto.spec.PBEKeySpec;
+import java.security.MessageDigest;
+import org.json.JSONTokener;
 import android.app.admin.DevicePolicyManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -34,6 +43,8 @@ public final class MainActivity extends Activity {
     private WebView webView;
     private ValueCallback<Uri[]> fileChooserCallback;
     private String pendingVideoProductId;
+    private boolean leavingKiosk;
+    private boolean pickingFile;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +75,12 @@ public final class MainActivity extends Activity {
         settings.setDisplayZoomControls(false);
         settings.setSupportZoom(false);
 
-        webView.setWebViewClient(new WebViewClient());
+        webView.setWebViewClient(new WebViewClient() {
+            @Override public boolean shouldOverrideUrlLoading(WebView view, android.webkit.WebResourceRequest request) {
+                return !START_URL.equals(request.getUrl().toString());
+            }
+        });
+        webView.addJavascriptInterface(new OwnerBridge(), "AndroidOwner");
         webView.addJavascriptInterface(new AndroidMediaBridge(), "AndroidMedia");
         webView.setWebChromeClient(new WebChromeClient() {
             @Override
@@ -76,9 +92,13 @@ public final class MainActivity extends Activity {
                 if (fileChooserCallback != null) fileChooserCallback.onReceiveValue(null);
                 fileChooserCallback = callback;
                 try {
+                    pickingFile = true;
+                    stopKioskTask();
                     startActivityForResult(params.createIntent(), FILE_CHOOSER_REQUEST);
                     return true;
                 } catch (Exception error) {
+                    pickingFile = false;
+                    startKioskMode();
                     fileChooserCallback = null;
                     return false;
                 }
@@ -123,6 +143,7 @@ public final class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        pickingFile = false;
         if (requestCode == FILE_CHOOSER_REQUEST && fileChooserCallback != null) {
             fileChooserCallback.onReceiveValue(
                 WebChromeClient.FileChooserParams.parseResult(resultCode, data)
@@ -146,8 +167,12 @@ public final class MainActivity extends Activity {
                 intent.addCategory(Intent.CATEGORY_OPENABLE);
                 intent.setType("video/mp4");
                 try {
+                    pickingFile = true;
+                    stopKioskTask();
                     startActivityForResult(intent, VIDEO_CHOOSER_REQUEST);
                 } catch (Exception error) {
+                    pickingFile = false;
+                    startKioskMode();
                     sendVideoFailure("V zařízení není dostupný správce souborů.");
                 }
             });
@@ -194,6 +219,7 @@ public final class MainActivity extends Activity {
 
     @SuppressWarnings("deprecation")
     private void enterImmersiveMode() {
+        if (leavingKiosk) return;
         webView.setSystemUiVisibility(
             View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
                 | View.SYSTEM_UI_FLAG_FULLSCREEN
@@ -205,37 +231,133 @@ public final class MainActivity extends Activity {
     }
 
     private void startKioskMode() {
+        if (leavingKiosk || pickingFile || DisplayScheduleReceiver.isPaused(this)) return;
         DevicePolicyManager policy =
             (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
+        try {
         if (policy != null && policy.isDeviceOwnerApp(getPackageName())) {
+            if (Build.VERSION.SDK_INT >= 28) policy.setLockTaskFeatures(
+                new ComponentName(this, KioskDeviceAdminReceiver.class), DevicePolicyManager.LOCK_TASK_FEATURE_NONE);
+            policy.setKeyguardDisabled(new ComponentName(this, KioskDeviceAdminReceiver.class), true);
             policy.setLockTaskPackages(
                 new ComponentName(this, KioskDeviceAdminReceiver.class),
                 new String[]{getPackageName()}
             );
         }
 
-        try {
             // Without Device Owner Android starts user-confirmed screen pinning.
             // With Device Owner the allow-list above turns this into silent Lock Task.
-            startLockTask();
+            ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+            if (activityManager.getLockTaskModeState() == ActivityManager.LOCK_TASK_MODE_NONE) startLockTask();
         } catch (IllegalArgumentException | SecurityException ignored) {
             // Immersive mode remains active if screen pinning is unavailable.
         }
     }
 
+    private void stopKioskTask() {
+        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        if (manager.getLockTaskModeState() != ActivityManager.LOCK_TASK_MODE_NONE) stopLockTask();
+    }
+
     private void updateDisplayWindow() {
+        if (leavingKiosk || DisplayScheduleReceiver.isPaused(this)) return;
         if (DisplayScheduleReceiver.isDisplayWindowActive()) {
             getWindow().addFlags(
                 WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
                     | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
             );
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) setTurnScreenOn(true);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
+                setTurnScreenOn(true);
+                setShowWhenLocked(true);
+            }
         } else {
             getWindow().clearFlags(
                 WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON
                     | WindowManager.LayoutParams.FLAG_TURN_SCREEN_ON
             );
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) setTurnScreenOn(false);
+            if (webView != null) webView.evaluateJavascript("document.querySelectorAll('video').forEach(v=>v.pause())", null);
+        }
+    }
+
+    private final class OwnerBridge {
+        @JavascriptInterface public String status() {
+            DevicePolicyManager policy = (DevicePolicyManager) getSystemService(DEVICE_POLICY_SERVICE);
+            return policy.isDeviceOwnerApp(getPackageName()) ? "Device Owner aktivní" : "Device Owner není aktivní";
+        }
+
+        @JavascriptInterface public void requestExit() {
+            runOnUiThread(() -> webView.evaluateJavascript(
+                "document.getElementById('adminOverlay').hidden ? null : localStorage.getItem('exhibit-label-admin-pin-v1')",
+                encoded -> {
+                    try {
+                        Object decoded = new JSONTokener(encoded).nextValue();
+                        if (!(decoded instanceof String)) return;
+                        confirmOwnerExit(new JSONObject((String) decoded));
+                    } catch (Exception ignored) { }
+                }));
+        }
+    }
+
+    private void confirmOwnerExit(JSONObject credential) {
+        EditText input = new EditText(this);
+        input.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_VARIATION_PASSWORD);
+        input.setHint("Administrátorský PIN");
+        AlertDialog dialog = new AlertDialog.Builder(this)
+            .setTitle("Vypnout kiosk a odebrat správu tabletu")
+            .setMessage("Tablet bude opět volně ovladatelný. Automatické probouzení se vypne. Data aplikace zůstanou zachována; odinstalace je smaže. Zadejte svůj PIN.")
+            .setView(input).setNegativeButton("Zrušit", null).setPositiveButton("Odemknout tablet", null).create();
+        dialog.setOnShowListener(unused -> dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener(view -> {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(false);
+            String pin = input.getText().toString();
+            new Thread(() -> {
+                boolean accepted = false;
+                try {
+                    int iterations = credential.getInt("iterations");
+                    if (iterations < 10000 || iterations > 1000000) throw new IllegalArgumentException();
+                    PBEKeySpec spec = new PBEKeySpec(pin.toCharArray(), Base64.decode(credential.getString("salt"), Base64.DEFAULT), iterations, 256);
+                    byte[] actual = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256").generateSecret(spec).getEncoded();
+                    spec.clearPassword();
+                    accepted = MessageDigest.isEqual(actual, Base64.decode(credential.getString("hash"), Base64.DEFAULT));
+                } catch (Exception ignored) { }
+                final boolean valid = accepted;
+                runOnUiThread(() -> {
+                    if (!dialog.isShowing() || isFinishing() || isDestroyed()) return;
+                    dialog.getButton(AlertDialog.BUTTON_POSITIVE).setEnabled(true);
+                    if (valid) { dialog.dismiss(); releaseOwner(); }
+                    else { input.setError("Nesprávný PIN"); input.setText(""); }
+                });
+            }, "owner-pin").start();
+        }));
+        dialog.show();
+    }
+
+    @SuppressWarnings("deprecation")
+    private void releaseOwner() {
+        leavingKiosk = true;
+        getSharedPreferences("kiosk-control", MODE_PRIVATE).edit().putBoolean("paused", true).commit();
+        DisplayScheduleReceiver.cancel(this);
+        try {
+            stopKioskTask();
+            DevicePolicyManager policy = (DevicePolicyManager) getSystemService(DEVICE_POLICY_SERVICE);
+            ComponentName admin = new ComponentName(this, KioskDeviceAdminReceiver.class);
+            if (policy.isDeviceOwnerApp(getPackageName())) {
+                policy.setLockTaskPackages(admin, new String[0]);
+                if (Build.VERSION.SDK_INT >= 28) policy.setLockTaskFeatures(admin, DevicePolicyManager.LOCK_TASK_FEATURE_GLOBAL_ACTIONS);
+                policy.setKeyguardDisabled(admin, false);
+                policy.clearDeviceOwnerApp(getPackageName());
+                if (policy.isDeviceOwnerApp(getPackageName())) throw new IllegalStateException("Správa zůstala aktivní.");
+            }
+            if (policy.isAdminActive(admin)) policy.removeActiveAdmin(admin);
+            getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON | WindowManager.LayoutParams.FLAG_FULLSCREEN);
+            webView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_VISIBLE);
+            startActivity(new Intent(Settings.ACTION_SETTINGS));
+            finishAndRemoveTask();
+        } catch (Exception error) {
+            new AlertDialog.Builder(this).setTitle("Odebrání správy není dokončené")
+                .setMessage("Android nedovolil dokončit odebrání správy: " + error.getMessage() + ". Automatické probouzení je zastavené. Otevřete nastavení a ověřte správce zařízení.")
+                .setPositiveButton("Nastavení", (d, w) -> startActivity(new Intent(Settings.ACTION_SETTINGS)))
+                .setNegativeButton("Zavřít", null).show();
         }
     }
 
@@ -253,4 +375,3 @@ public final class MainActivity extends Activity {
         super.onDestroy();
     }
 }
-
