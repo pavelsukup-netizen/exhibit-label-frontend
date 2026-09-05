@@ -59,14 +59,14 @@ jobs:
 
       - name: Prepare artifact
         run: |
-          cp android-kiosk/app/build/outputs/apk/debug/app-debug.apk ExhibitCatalog-0.3.0-device-owner.apk
+          cp android-kiosk/app/build/outputs/apk/debug/app-debug.apk ExhibitCatalog-0.3.1-device-owner.apk
           cp android-kiosk/README.md INSTALACE-DEVICE-OWNER.md
 
       - uses: actions/upload-artifact@v4
         with:
           name: ExhibitCatalog-APK
           path: |
-            ExhibitCatalog-0.3.0-device-owner.apk
+            ExhibitCatalog-0.3.1-device-owner.apk
             INSTALACE-DEVICE-OWNER.md
           if-no-files-found: error
           retention-days: 30
