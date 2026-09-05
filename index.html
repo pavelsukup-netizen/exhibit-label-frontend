@@ -104,8 +104,13 @@
           </div>
           <div id="ownerControls" class="admin-section" hidden>
             <strong id="ownerStatus"></strong>
-            <p class="help">Ukončení vypne automatické probouzení a odebere správu zařízení. Tablet pak lze běžně ovládat a aplikaci odinstalovat.</p>
-            <button id="exitOwnerButton" class="button secondary" type="button">Vypnout aplikaci a odebrat správu tabletu</button>
+            <p class="help">Pro běžné vypnutí použijte dočasné vypnutí kiosku. Správa zůstane zachovaná a kiosk zde opět zapnete bez počítače. Nejdříve uložte případné změny nastavení.</p>
+            <button id="resumeKioskButton" class="button primary" type="button">Zapnout kiosk (Device Owner)</button>
+            <button id="pauseKioskButton" class="button secondary" type="button">Dočasně vypnout kiosk – zachovat správu</button>
+            <details><summary>Odebrání správy – pouze pro odinstalaci</summary>
+              <p class="help">Po odebrání správy je pro opětovnou aktivaci Device Owner nutný počítač a USB. Nepoužívejte pro běžné vypnutí nebo opětovné načtení katalogu.</p>
+              <button id="exitOwnerButton" class="button secondary" type="button">Odebrat správu pro odinstalaci</button>
+            </details>
           </div>
           <div class="status-grid">
             <div><span>Aktivní displej</span><strong>7:00–18:00</strong></div>
@@ -124,6 +129,6 @@
   <script src="data/products-gorenje.js?v=20260902-1"></script>
   <script src="data/products-mora.js?v=20260902-1"></script>
   <script src="data/products.js?v=20260902-1"></script>
-  <script src="assets/app.js?v=20260905-owner"></script>
+  <script src="assets/app.js?v=20260905-owner-resume"></script>
 </body>
 </html>
